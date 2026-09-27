@@ -2,6 +2,8 @@
 
 Esta especificação traduz os pedidos de interface, planta, passeio e mobília em comportamentos observáveis. É uma proposta para a primeira implementação, não uma descrição de funcionalidades já entregues.
 
+**Plataforma:** aplicativo instalado, Windows primeiro. A [direção visual](direcao-visual.md) define o acabamento inspirado pela facilidade do Floorplanner e a [decisão de base](decisao-desktop.md) registra o núcleo funcional próximo do Sweet Home 3D.
+
 ## Estrutura visual
 
 ```text
@@ -28,7 +30,7 @@ No editor de planta, a ferramenta atual e uma dica curta ficam visíveis; medida
 3. Editar a planta: desenhar/mover paredes, portas e janelas; ajustar dimensões e nomes de cômodos; ver áreas calculadas; desfazer/refazer.
 4. Abrir 3D com a estrutura **vazia** para conferir espaços e circulação.
 5. Entrar no passeio ou voltar à planta a qualquer momento. Depois, ativar **Mobiliar** e aplicar materiais/cores.
-6. Salvar localmente e exportar o projeto editável. O limite inicial é de três projetos salvos no navegador; importar um quarto exige liberar um espaço, sem apagar automaticamente nenhum projeto.
+6. Salvar localmente e exportar o projeto editável. O limite inicial é de três projetos na biblioteca do aplicativo; importar um quarto exige liberar um espaço, sem apagar automaticamente nenhum projeto.
 
 ## Passeio e minimapa
 

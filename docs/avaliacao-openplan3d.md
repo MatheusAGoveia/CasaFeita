@@ -1,5 +1,7 @@
 # Avaliação reproduzível da base candidata
 
+**Situação atual:** esta avaliação técnica permanece como registro histórico. Após o usuário indicar Sweet Home 3D e Floorplanner, o OpenPlan3D deixou de ser a base principal do produto. A direção atual está em [decisao-desktop.md](decisao-desktop.md).
+
 Data: 27/09/2026. Repositório avaliado: `laanlabs/openPlan3D`, commit `d68cadf703578f2cd3a7c77f820e18d342580c32` da branch `main`. A avaliação ocorreu em um clone temporário, sem importar arquivos do projeto ao CasaFeita.
 
 ## Verificações executadas
@@ -20,6 +22,6 @@ Ambiente: Windows, Node.js `v24.18.0`, npm `11.16.0`.
 - A base passa por verificações automatizadas relevantes e possui um catálogo de móveis amplo com medidas padrão.
 - O passeio implementa movimento de câmera sem colisão/gravidade física. Seu mapa de teclas difere do WASD de deslocamento solicitado.
 - Recursos de importação, servidor, IA opcional e ativos existentes precisam de revisão por função e licença antes de aparecerem na interface simplificada.
-- A opção de três projetos por pessoa não decorre automaticamente do armazenamento local. A primeira versão pode limitar três projetos por navegador e comunicar essa diferença com clareza.
+- Na hipótese web avaliada na época, o armazenamento local permitiria limitar três projetos por navegador, sem garantir três por pessoa. A direção atual é uma biblioteca local do aplicativo instalado.
 
 Esta avaliação recomenda uma **prova de integração pequena** após a escolha da stack, não uma migração total sem revisão.

@@ -1,26 +1,28 @@
-# Análise arquitetural inicial
+# Análise arquitetural
 
-Pesquisa realizada em 27/09/2026. Esta é uma decisão proposta para discussão; nenhum código de terceiros foi incorporado ao CasaFeita nesta fase.
+Pesquisa iniciada em 27/09/2026. A primeira recomendação foi revista após o usuário indicar Sweet Home 3D e Floorplanner como referências e escolher um **aplicativo instalado**. Leia a [decisão desktop e a avaliação de SweetHomeJS](decisao-desktop.md) para a direção atual. Nenhum código de terceiros foi incorporado ao CasaFeita nesta fase.
 
 ## Recomendação
 
-Usar **OpenPlan3D** como primeira base técnica para o editor web, mantendo seu histórico e licença MIT identificáveis. O projeto já dispõe de planta 2D com paredes e aberturas, cômodos, medidas, edição de móveis, prévia 3D, importação/exportação, salvamento local e testes. CasaFeita concentraria a primeira etapa de desenvolvimento em uma experiência mais simples e no passeio correto entre cômodos. A importação de fotos e a assistência por IA entram depois que a geometria manual, o passeio e o formato de projeto estiverem estáveis.
+Construir primeiro para **Windows**, com uma interface CasaFeita própria e acabamento comparável ao Floorplanner. Usar o modelo/edição do Sweet Home 3D como padrão funcional. A tradução comunitária **SweetHomeJS** é a candidata principal para reaproveitar o núcleo em TypeScript, após a prova de integração e as correções registradas na [avaliação](decisao-desktop.md). A importação de fotos e a assistência por IA entram depois que geometria, mobília, passeio e arquivo editável estiverem estáveis.
 
-Antes de incorporar essa base, é necessário rodar e registrar os testes, o build e um teste manual do fluxo 2D → 3D no computador de desenvolvimento. **MIT no código não garante que todo modelo e textura anexado tenha a mesma licença**; os ativos precisam de inventário próprio.
+Adotar código derivado de Sweet Home 3D exige **GPL v2 ou posterior** na distribuição do aplicativo e atribuição dos autores. Modelos e texturas exigem inventário de licença separado. O projeto ainda é MIT porque contém somente documentação original; a mudança de licença ocorrerá junto da incorporação.
 
 ### Comparação de projetos
 
 | Projeto | O que já resolve | Limite para CasaFeita | Encaminhamento |
 | --- | --- | --- | --- |
-| [OpenPlan3D](https://github.com/laanlabs/openPlan3D) (MIT; SvelteKit, TypeScript, Three.js) | Editor 2D, 3D, móveis, histórico, exportações, armazenamento local e passeio básico. Tem documentação de capacidades e testes por recurso. | A câmera do passeio não bloqueia paredes, a altura é fixa e as teclas WASD atualmente giram a vista em vez de caminhar. Falta minimapa clicável com rotas. A interface tem mais controles que a proposta. | **Base recomendada**, sujeita à validação local e auditoria dos ativos. |
+| [OpenPlan3D](https://github.com/laanlabs/openPlan3D) (MIT; SvelteKit, TypeScript, Three.js) | Editor 2D, 3D, móveis, histórico, exportações, armazenamento local e passeio básico. Tem documentação de capacidades e testes por recurso. | A câmera do passeio não bloqueia paredes, a altura é fixa e as teclas WASD atualmente giram a vista em vez de caminhar. Falta minimapa clicável com rotas. A interface e o 3D não alcançam a referência visual solicitada. | Avaliação técnica histórica; **não é a direção visual nem a base principal**. |
 | [Blueprint3D](https://github.com/furnishup/blueprint3d) (MIT) | Modelo de planta, editor 2D, itens e visualização 3D. | Núcleo antigo com Grunt/jQuery; o próprio README aponta falta de testes e problemas de empacotamento. | Referência de domínio, não base preferida. |
-| [blueprint3d-modern](https://github.com/charmlinn/blueprint3d-modern) (MIT) | Reescrita em TypeScript, Three.js atual, persistência local e catálogo. | O próprio roadmap ainda lista testes do modelo, desfazer/refazer e GLB/glTF como pendentes. | Alternativa se OpenPlan3D falhar na avaliação. |
+| [blueprint3d-modern](https://github.com/charmlinn/blueprint3d-modern) (MIT) | Reescrita em TypeScript, Three.js atual, persistência local e catálogo. | O próprio roadmap ainda lista testes do modelo, desfazer/refazer e GLB/glTF como pendentes. | Referência secundária de arquitetura. |
 | [react-planner](https://github.com/cvdlab/react-planner) (MIT) | Planta 2D, catálogo extensível e renderização 3D em React. | Arquitetura Redux/Immutable antiga; precisaria de atualização e de outro núcleo de navegação. | Consultar ideias de catálogo e representação de elementos. |
-| [Sweet Home 3D](https://www.sweethome3d.com/download/) (GPL) | Editor residencial maduro, mobiliário e visualização 3D. | Aplicação Java desktop e licença copyleft dificultam aproveitamento seletivo no editor web MIT. | Referência de funcionalidades e ergonomia, sem copiar código. |
+| [Sweet Home 3D](https://www.sweethome3d.com/download/) (GPL v2+) | Editor residencial maduro, mobiliário, pavimentos, medidas, arquivo `.sh3d` e visualização 3D. | A interface Swing atual exigiria uma reconstrução grande para seguir o desenho desejado. | Referência funcional; seu formato/modelo podem ser reaproveitados sob GPL. |
+| [SweetHomeJS](https://github.com/njhurst/sweethomejs) (GPL v2+) | Tradução TypeScript do núcleo e editor 2D/3D com pacotes separados. | Build raiz quebrado por ordem de dependência, um teste com caminho Windows inválido, catálogo sem modelos 3D e UI utilitária. | **Candidato principal para o núcleo**, condicionado à prova de integração. |
+| [Floorplanner](https://floorplanner.com/personal) (proprietário) | Referência de fluxo fácil, medidas precisas, catálogo pesquisável e apresentação visual. | Código e ativos não estão disponíveis para redistribuição open source. | Referência de experiência e qualidade, sem copiar arquivos. |
 
-O artigo [*Architectural visualization with Astra*](https://developers.openai.com/blog/architectural-visualization-with-astra) descreve uma cena editável criada no Blender pela API Python e explorada no Unreal. É uma demonstração útil de **iterar sobre geometria verificável**, não uma biblioteca de editor residencial pronta para integrar. Blender pode futuramente servir como exportador/renderizador opcional; o fluxo principal deve continuar no navegador.
+O artigo [*Architectural visualization with Astra*](https://developers.openai.com/blog/architectural-visualization-with-astra) descreve uma cena editável criada no Blender pela API Python e explorada no Unreal. É uma demonstração útil de **iterar sobre geometria verificável**, não uma biblioteca de editor residencial pronta para integrar. Blender pode futuramente servir como exportador/renderizador opcional; o fluxo principal será o aplicativo instalado.
 
-### O que foi conferido no código do OpenPlan3D
+### O que foi conferido no código do OpenPlan3D antes da revisão
 
 - O [catálogo](https://github.com/laanlabs/openPlan3D/blob/main/src/lib/utils/furnitureCatalog.ts) contém categorias e dimensões em centímetros; o usuário precisará poder revisar e substituir medidas padrão.
 - A [persistência](https://github.com/laanlabs/openPlan3D/blob/main/src/lib/services/localDatabase.ts) usa IndexedDB no navegador, o que permite uma experiência inicial sem conta ou servidor de projetos.
@@ -83,14 +85,15 @@ Começar por um conjunto curado de cama, sofá, mesa, cadeira, armário, TV, gel
 
 ### Armazenamento, limite de projetos e custo
 
-No primeiro lançamento, manter até **três projetos salvos por navegador** em IndexedDB, com exportação e importação de backup. Isso é uma regra de interface, não uma garantia de três por pessoa: sem conta, a mesma pessoa pode usar outro navegador. Se sincronização por conta for acrescentada, a cota de três deve ser aplicada também no servidor. Não bloquear a exportação de um projeto ao atingir o limite.
+No primeiro lançamento, manter até **três projetos na biblioteca local do aplicativo**, com exportação e importação de arquivo editável. Isso atende à organização e ao limite de espaço da biblioteca, mas não garante três por pessoa: sem conta, alguém pode copiar arquivos, reinstalar ou usar outro computador. Se sincronização por conta for acrescentada, a cota de três pode ser aplicada também no servidor. Nunca bloquear a exportação ou apagar um projeto sem escolha do usuário.
 
 O editor manual e o passeio devem funcionar sem serviço pago. Assistência por IA que exija computação remota será opcional, com custo e destino dos dados mostrados antes do envio. A versão gratuita não pode depender de uma chave de API comercial para abrir ou editar um projeto.
 
 ## Critérios para adotar a base
 
-- Reproduzir `npm ci`, verificação de tipos, testes unitários e build no checkout fixado por commit.
-- Criar e salvar uma planta simples, recarregá-la e conferir medidas, aberturas, móveis e exportação.
-- Registrar o commit exato da base e manter atribuição MIT; auditar ativos incluídos separadamente.
-- Validar a possibilidade de trocar o movimento atual por um controlador com colisão e navegação assistida sem alterar o modelo de planta a cada iteração.
-- Se esses pontos falharem de forma estrutural, comparar o custo de extrair apenas os módulos de geometria/editor com a alternativa `blueprint3d-modern`.
+- Corrigir o build do SweetHomeJS no Windows e rodar tipos, testes e fluxo de navegador em checkout fixado por commit.
+- Criar e salvar uma planta simples, recarregá-la e conferir medidas, aberturas, móveis e 3D.
+- Confirmar que a camada de modelo/controladores pode ser usada com uma interface CasaFeita própria, sem herdar os menus e painéis antigos.
+- Registrar versão, GPL, avisos dos autores e licenças de modelos antes de distribuir uma versão derivada.
+- Validar que o passeio com colisão e rotas pode derivar da planta editável sem alterar o arquivo a cada iteração.
+- Se a integração falhar de forma estrutural, reavaliar o Sweet Home 3D JS oficial e o custo de um núcleo próprio.
