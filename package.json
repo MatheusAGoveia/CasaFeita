@@ -1,0 +1,17 @@
+{
+  "name": "casafeita",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "license": "GPL-2.0-or-later",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "build:engine": "npm run build -w @sweethomejs/core && npm run build -w @sweethomejs/render2d && npm run build -w @sweethomejs/render3d && npm run build -w @sweethomejs/export && npm run build -w @sweethomejs/photo && npm run build -w @sweethomejs/ui",
+    "typecheck:engine": "npm run typecheck -w @sweethomejs/core && npm run typecheck -w @sweethomejs/render2d && npm run typecheck -w @sweethomejs/render3d && npm run typecheck -w @sweethomejs/export && npm run typecheck -w @sweethomejs/photo && npm run typecheck -w @sweethomejs/ui"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  }
+}

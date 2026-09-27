@@ -1,12 +1,12 @@
 # Análise arquitetural
 
-Pesquisa iniciada em 27/09/2026. A primeira recomendação foi revista após o usuário indicar Sweet Home 3D e Floorplanner como referências e escolher um **aplicativo instalado**. Leia a [decisão desktop e a avaliação de SweetHomeJS](decisao-desktop.md) para a direção atual. Nenhum código de terceiros foi incorporado ao CasaFeita nesta fase.
+Pesquisa iniciada em 27/09/2026. A primeira recomendação foi revista após o usuário indicar Sweet Home 3D e Floorplanner como referências e escolher um **aplicativo instalado**. Leia a [decisão desktop e a avaliação de SweetHomeJS](decisao-desktop.md) para a direção atual. Os pacotes selecionados foram incorporados posteriormente; veja [THIRD_PARTY.md](../THIRD_PARTY.md).
 
 ## Recomendação
 
 Construir primeiro para **Windows**, com uma interface CasaFeita própria e acabamento comparável ao Floorplanner. Usar o modelo/edição do Sweet Home 3D como padrão funcional. A tradução comunitária **SweetHomeJS** é a candidata principal para reaproveitar o núcleo em TypeScript, após a prova de integração e as correções registradas na [avaliação](decisao-desktop.md). A importação de fotos e a assistência por IA entram depois que geometria, mobília, passeio e arquivo editável estiverem estáveis.
 
-Adotar código derivado de Sweet Home 3D exige **GPL v2 ou posterior** na distribuição do aplicativo e atribuição dos autores. Modelos e texturas exigem inventário de licença separado. O projeto ainda é MIT porque contém somente documentação original; a mudança de licença ocorrerá junto da incorporação.
+Adotar código derivado de Sweet Home 3D exige **GPL v2 ou posterior** na distribuição do aplicativo e atribuição dos autores. A licença do repositório foi alterada no commit de incorporação; os documentos originais conservam a licença MIT anterior. Modelos e texturas exigem inventário de licença separado.
 
 ### Comparação de projetos
 

@@ -1,6 +1,6 @@
 # Revisão da base: aplicativo instalado
 
-Revisão de 27/09/2026, após a comparação visual feita pelo usuário. **Sweet Home 3D é a referência de profundidade funcional; Floorplanner é a referência de facilidade e apresentação.** CasaFeita deve ser um aplicativo instalado, começando pelo Windows. A interface atual do OpenPlan3D foi rejeitada como direção do produto. Nenhum código de terceiros foi incorporado ao repositório nesta revisão.
+Revisão de 27/09/2026, após a comparação visual feita pelo usuário. **Sweet Home 3D é a referência de profundidade funcional; Floorplanner é a referência de facilidade e apresentação.** CasaFeita deve ser um aplicativo instalado, começando pelo Windows. A interface atual do OpenPlan3D foi rejeitada como direção do produto. Os pacotes selecionados do SweetHomeJS foram incorporados em commit posterior, com origem registrada em [THIRD_PARTY.md](../THIRD_PARTY.md).
 
 ## O que cada referência oferece
 
@@ -37,6 +37,6 @@ Esses resultados tornam o núcleo interessante para uma prova de integração, m
 
 ## Licenças e mobília
 
-Caso CasaFeita incorpore código derivado de Sweet Home 3D/SweetHomeJS, o aplicativo e o código correspondente distribuído terão de respeitar **GPL v2 ou posterior**, com avisos de autoria e código fonte disponível. O README e `LICENSE` atuais cobrem apenas os documentos originais MIT e precisam mudar no commit de incorporação. A [página oficial de licenças](https://www.sweethome3d.com/license/) também explica que modelos e texturas podem ter licenças distintas e exigências de atribuição; cada pacote de móveis terá manifesto próprio. O catálogo do Floorplanner não será extraído.
+Com a incorporação de código derivado de Sweet Home 3D/SweetHomeJS, o aplicativo e o código correspondente distribuído obedecem **GPL v2 ou posterior**, com avisos de autoria e código fonte disponível. Os documentos originais publicados antes da incorporação preservam MIT em `LICENSE-MIT`. A [página oficial de licenças](https://www.sweethome3d.com/license/) também explica que modelos e texturas podem ter licenças distintas e exigências de atribuição; cada pacote de móveis terá manifesto próprio. O catálogo do Floorplanner não será extraído.
 
 Para começar com modelos reais e redistribuíveis, avaliar [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) e [Poly Haven](https://polyhaven.com/license), ambos CC0, e bibliotecas gratuitas do Sweet Home 3D após inventário de autoria. Guardar medidas reais editáveis separadas da aparência da variante; carregar malhas e texturas sob demanda.

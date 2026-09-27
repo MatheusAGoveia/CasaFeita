@@ -1,0 +1,27 @@
+
+{
+  "name": "@sweethomejs/export",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "SweetHomeJS exporters (PDF, CSV)",
+  "license": "GPL-2.0-or-later",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@sweethomejs/core": "0.1.0",
+    "@sweethomejs/render2d": "0.1.0",
+    "pdf-lib": "^1.17.1"
+  }
+}

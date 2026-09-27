@@ -1,0 +1,376 @@
+/*
+ * theme.css
+ *
+ * Original SweetHomeJS code, Copyright (c) 2026 SweetHomeJS contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/* SweetHomeJS shell theme (task 7.1). */
+.sh-home {
+  --sh-bg: #f4f4f4;
+  --sh-fg: #222;
+  --sh-accent: #1d5fa8;
+  --sh-border: #ccc;
+  --sh-toolbar-bg: #ececec;
+  --sh-statusbar-bg: #e4e4e4;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-family: system-ui, sans-serif;
+  background: var(--sh-bg);
+  color: var(--sh-fg);
+}
+
+.sh-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  background: var(--sh-toolbar-bg);
+  border-bottom: 1px solid var(--sh-border);
+  flex: 0 0 auto;
+}
+
+.sh-toolbar-button {
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.sh-toolbar-button:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.sh-toolbar-button.active {
+  background: var(--sh-accent);
+  color: white;
+}
+
+.sh-toolbar-separator {
+  width: 1px;
+  height: 20px;
+  background: var(--sh-border);
+  margin: 0 4px;
+}
+
+.sh-toolbar-spacer {
+  flex: 1;
+}
+
+.sh-home-name {
+  font-size: 13px;
+  color: #666;
+}
+
+.sh-home-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.sh-menubar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 6px;
+  background: var(--sh-toolbar-bg);
+  border-bottom: 1px solid var(--sh-border);
+  min-height: 26px;
+  position: relative;
+  z-index: 40;
+}
+
+.sh-menu {
+  position: relative;
+}
+
+.sh-menu-button {
+  border: none;
+  background: transparent;
+  padding: 3px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.sh-menu-button:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.sh-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+
+.sh-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 180px;
+  background: white;
+  border: 1px solid var(--sh-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 60;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sh-menu-item {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 5px 14px 5px 28px;
+  font-size: 13px;
+  cursor: pointer;
+  position: relative;
+}
+
+.sh-menu-item:hover:not(.disabled) {
+  background: var(--sh-accent);
+  color: white;
+}
+
+.sh-menu-item.disabled {
+  color: #999;
+  cursor: default;
+}
+
+.sh-menu-item.checked {
+  font-weight: 600;
+}
+
+.sh-menu-check {
+  position: absolute;
+  left: 8px;
+}
+
+.sh-menu-separator {
+  height: 1px;
+  background: var(--sh-border);
+  margin: 4px 6px;
+}
+
+.sh-print-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  padding: 12px;
+}
+
+.sh-print-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.sh-print-controls label {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.sh-print-controls select,
+.sh-print-controls input {
+  width: 90px;
+}
+
+.sh-print-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+
+.sh-print-canvas-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: auto;
+  background: #666;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.sh-print-canvas-wrap canvas {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* The print layer: only visible when printing */
+.sh-print-layer {
+  display: none;
+}
+
+@media print {
+  .sh-print-layer {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
+
+.sh-dialog-card {
+  background: white;
+  border: 1px solid var(--sh-border);
+  border-radius: 6px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+  padding: 14px;
+  max-width: 480px;
+  width: 90%;
+  margin: 40px auto;
+}
+
+.sh-dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.sh-help-overlay {
+  position: absolute;
+  inset: 0;
+  background: white;
+  z-index: 100;
+}
+
+.sh-catalog-dock {
+  width: 240px;
+  flex: 0 0 auto;
+  border-right: 1px solid var(--sh-border);
+  background: var(--sh-toolbar-bg);
+  overflow: auto;
+  min-height: 0;
+}
+
+.sh-catalog-dock .sh-catalog {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sh-catalog-dock .sh-catalog-search {
+  margin: 6px;
+}
+
+.sh-catalog-dock .sh-catalog-tree {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 0 6px 6px;
+}
+
+.sh-left-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  background: var(--sh-toolbar-bg);
+  border-right: 1px solid var(--sh-border);
+  width: 44px;
+  flex: 0 0 auto;
+}
+
+.sh-left-tool {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.sh-left-tool:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.sh-left-tool.active {
+  background: var(--sh-accent);
+  color: white;
+}
+
+.sh-plan {
+  flex: 1 1 60%;
+  min-width: 0;
+  position: relative;
+  border-right: 1px solid var(--sh-border);
+}
+
+.sh-view3d {
+  flex: 1 1 40%;
+  min-width: 0;
+  position: relative;
+}
+
+.sh-tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.sh-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--sh-border);
+}
+
+.sh-tab {
+  border: none;
+  background: transparent;
+  padding: 6px 16px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.sh-tab.active {
+  border-bottom-color: var(--sh-accent);
+  font-weight: 600;
+}
+
+.sh-tab-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.sh-statusbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 3px 8px;
+  background: var(--sh-statusbar-bg);
+  border-top: 1px solid var(--sh-border);
+  font-size: 12px;
+  color: #444;
+  flex: 0 0 auto;
+}
+
+.sh-statusbar-spacer {
+  flex: 1;
+}
+
+.sh-view3d-select {
+  font-size: 13px;
+}

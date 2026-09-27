@@ -4,7 +4,7 @@ CasaFeita é um projeto gratuito e open source de **aplicativo instalado** para 
 
 ## Estado atual
 
-**Fase 0 — pesquisa e arquitetura.** Ainda não há editor funcional neste repositório. Após comparar uma primeira base, a direção foi corrigida: a profundidade de edição deve se aproximar de **Sweet Home 3D**, com a clareza visual de **Floorplanner**. A primeira plataforma é Windows; os outros sistemas podem ser atendidos depois.
+**Fase 1 — fundação do aplicativo.** O núcleo GPL de planta e visualização do SweetHomeJS está sendo integrado. Ainda não há uma versão final instalável: a primeira prova precisa abrir, editar e salvar `.sh3d` em uma interface CasaFeita. A profundidade de edição segue **Sweet Home 3D**, com a clareza visual de **Floorplanner**. A primeira plataforma é Windows.
 
 - [Análise arquitetural e bases open source](docs/analise-arquitetural.md)
 - [Verificações da base candidata](docs/avaliacao-openplan3d.md)
@@ -24,4 +24,4 @@ CasaFeita é um projeto gratuito e open source de **aplicativo instalado** para 
 
 ## Licença
 
-O conteúdo original atual deste repositório usa a licença [MIT](LICENSE). Se o núcleo GPL do Sweet Home 3D ou de sua tradução SweetHomeJS for incorporado, a distribuição do aplicativo derivado passará a obedecer **GPL v2 ou posterior** e o repositório terá licença, avisos e atribuições atualizados no mesmo commit da incorporação. Modelos 3D e texturas mantêm suas próprias licenças e terão procedência registrada.
+O aplicativo derivado é distribuído sob [GPL v2 ou posterior](LICENSE). Os documentos originais publicados antes da incorporação mantêm a licença [MIT](LICENSE-MIT). A origem do núcleo está em [THIRD_PARTY.md](THIRD_PARTY.md). Modelos 3D e texturas mantêm suas próprias licenças e terão procedência registrada.

@@ -1,0 +1,26 @@
+/*
+ * index.ts
+ *
+ * Original SweetHomeJS code, Copyright (c) 2026 SweetHomeJS contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+export { ThreeJSPhotoRenderer, PROGRESSIVE_PASSES } from "./ThreeJSPhotoRenderer.js";
+export { PhotoQuality } from "@sweethomejs/core";
+export { renderVideoFrames, recordVideo } from "./VideoRecorder.js";
+export type { VideoFrameOptions, VideoRecordOptions } from "./VideoRecorder.js";
+export type { RenderedImage, PhotoRendererObserver } from "@sweethomejs/core";
+export { ssim } from "./ssim.js";
+export type { PhotoBuffer } from "./ssim.js";
