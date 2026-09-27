@@ -7,6 +7,7 @@ CasaFeita é um projeto gratuito e open source para planejar uma casa a partir d
 **Fase 0 — pesquisa e arquitetura.** Ainda não há editor funcional neste repositório. O objetivo desta fase é escolher uma base open source confiável antes de importar ou desenvolver código, conforme a visão original do projeto.
 
 - [Análise arquitetural e bases open source](docs/analise-arquitetural.md)
+- [Verificações da base candidata](docs/avaliacao-openplan3d.md)
 - [Experiência, navegação e mobília](docs/experiencia-produto.md)
 - [Plano de evolução em entregas pequenas](docs/roadmap.md)
 
