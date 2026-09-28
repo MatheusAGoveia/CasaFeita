@@ -4,7 +4,26 @@ CasaFeita é um projeto gratuito e open source de **aplicativo instalado** para 
 
 ## Estado atual
 
-**Fase 1 — fundação do aplicativo.** O núcleo GPL de planta e visualização do SweetHomeJS está sendo integrado. Ainda não há uma versão final instalável: a primeira prova precisa abrir, editar e salvar `.sh3d` em uma interface CasaFeita. A profundidade de edição segue **Sweet Home 3D**, com a clareza visual de **Floorplanner**. A primeira plataforma é Windows.
+**Prévia 0.1 para Windows.** O aplicativo instalado já desenha paredes, cômodos e cotas em uma planta editável, mostra a estrutura em 3D em tempo real e abre/salva projetos locais `.sh3d`. A interface CasaFeita usa uma seleção central em pílula e mantém as ferramentas de desenho discretas. O núcleo de edição deriva do SweetHomeJS; **Sweet Home 3D** orienta a profundidade funcional e **Floorplanner** orienta a clareza visual.
+
+![Editor CasaFeita com planta e vista 3D](docs/preview-editor.png)
+
+Esta é uma versão de desenvolvimento. O catálogo de móveis com modelos reais, passeio em primeira pessoa, minimapa com navegação e biblioteca limitada a três projetos ainda estão no [roadmap](docs/roadmap.md). A exportação local `.sh3d` já funciona, sem conta nem serviço pago.
+
+## Executar no Windows
+
+Requer Node.js e npm. Na raiz do repositório:
+
+```powershell
+npm ci
+npm run build:engine
+npm run build -w @casafeita/desktop
+npm start -w @casafeita/desktop
+```
+
+Para gerar o instalador e um ZIP portátil, execute `npm run make -w @casafeita/desktop`. Os arquivos saem em `apps/desktop/out/make`. Se o gerenciador de pacotes bloquear o script de instalação do Electron e o executável estiver ausente, execute `node node_modules/electron/install.js` antes de iniciar. O instalador atual não é assinado digitalmente.
+
+O teste de integração do aplicativo usa `npx playwright test tests/desktop.spec.ts`; ele cria, salva e reabre uma planta na janela Electron.
 
 - [Análise arquitetural e bases open source](docs/analise-arquitetural.md)
 - [Verificações da base candidata](docs/avaliacao-openplan3d.md)

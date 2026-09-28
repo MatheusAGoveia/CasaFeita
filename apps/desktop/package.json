@@ -1,0 +1,33 @@
+{
+  "name": "@casafeita/desktop",
+  "productName": "CasaFeita",
+  "version": "0.1.0",
+  "description": "Aplicativo livre para desenhar plantas e visualizar casas em 3D",
+  "author": "CasaFeita contributors",
+  "private": true,
+  "main": "electron/main.cjs",
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "start": "electron .",
+    "make": "electron-forge make"
+  },
+  "dependencies": {
+    "@sweethomejs/core": "0.1.0",
+    "@sweethomejs/ui": "0.1.0",
+    "lucide-react": "^1.48.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.11.2",
+    "@electron-forge/maker-squirrel": "^7.11.2",
+    "@electron-forge/maker-zip": "^7.11.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^44.4.5",
+    "typescript": "^5.7.2",
+    "vite": "^7.3.6"
+  }
+}
