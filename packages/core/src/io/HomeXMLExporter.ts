@@ -31,8 +31,28 @@ import { Baseboard, LightSource, ObjectProperty, Sash } from "../model/ValueClas
 import { formatFloat } from "../util/f32.js";
 import { XMLWriter } from "./XMLWriter.js";
 
-/** Computes the Java getTag: simple class name, "Home" prefix removed, first letter lowercased. */
+/** Stable XML tags. Bundlers may rename constructors, so never derive file tags from class names. */
 export function getTag(object: object): string {
+  if (object instanceof Home) return "home";
+  if (object instanceof ObserverCamera) return "observerCamera";
+  if (object instanceof Camera) return "camera";
+  if (object instanceof HomeFurnitureGroup) return "furnitureGroup";
+  if (object instanceof HomeDoorOrWindow) return "doorOrWindow";
+  if (object instanceof HomeLight) return "light";
+  if (object instanceof HomeShelfUnit) return "shelfUnit";
+  if (object instanceof HomePieceOfFurniture) return "pieceOfFurniture";
+  if (object instanceof HomeEnvironment) return "environment";
+  if (object instanceof BackgroundImage) return "backgroundImage";
+  if (object instanceof HomePrint) return "print";
+  if (object instanceof Compass) return "compass";
+  if (object instanceof Level) return "level";
+  if (object instanceof Wall) return "wall";
+  if (object instanceof Room) return "room";
+  if (object instanceof Polyline) return "polyline";
+  if (object instanceof DimensionLine) return "dimensionLine";
+  if (object instanceof Label) return "label";
+  if (object instanceof HomeTexture) return "texture";
+  if (object instanceof HomeMaterial) return "material";
   const name = object.constructor.name;
   let tagName = name;
   if (tagName.startsWith("Home") && tagName !== "Home") {
@@ -438,7 +458,9 @@ export class HomeXMLExporter {
     writer.writeFloatAttribute("yaw", camera.getYaw());
     writer.writeFloatAttribute("pitch", camera.getPitch());
     writer.writeFloatAttribute("fieldOfView", camera.getFieldOfView());
-    writer.writeLongAttribute("time", camera.getTime());
+    if (Number.isFinite(camera.getTime())) {
+      writer.writeLongAttribute("time", camera.getTime());
+    }
     if (camera instanceof ObserverCamera) {
       writer.writeBooleanAttribute("fixedSize", camera.isFixedSize(), false);
     }
