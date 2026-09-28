@@ -108,7 +108,7 @@ export class RoomObject3D extends Object3DBase<Room> {
             shininess: floorShininess,
             opacity: 1,
             doubleSided: true,
-            polygonOffset: 2,
+            polygonOffset: -2,
           })
           .clone();
         standardMaterial.map = texture;
@@ -127,7 +127,7 @@ export class RoomObject3D extends Object3DBase<Room> {
           shininess: floorShininess,
           opacity: 1,
           doubleSided: true,
-          polygonOffset: 2,
+          polygonOffset: -2,
         });
       }
     } else {
@@ -137,10 +137,9 @@ export class RoomObject3D extends Object3DBase<Room> {
         shininess: floorShininess,
         opacity: 1,
         doubleSided: true,
-        // Keep the floor's fragments clearly in front of the ground in the
-        // depth test (z-fighting at distance otherwise shows the floor's
-        // triangulation as visible borders).
-        polygonOffset: 2,
+        // Pull the floor toward the camera in the depth test. A positive
+        // offset hides it behind the ground plane from overhead views.
+        polygonOffset: -2,
       });
     }
     this.mesh = new THREE.Mesh(geometry, material);

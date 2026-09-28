@@ -39,10 +39,7 @@ import {
   HomeScene3D,
   View3DCamera,
   applyModelCameraToThree,
-  createDesignComposer,
   createRoomEnvironment,
-  createSceneEnvironment,
-  type DesignComposer,
   type DesignEnvironment,
 } from "@sweethomejs/render3d";
 
@@ -122,6 +119,9 @@ export function View3DCanvas(props: View3DCanvasProps): React.JSX.Element {
       return;
     }
     renderer.setPixelRatio(window.devicePixelRatio || 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.35;
     renderer.shadowMap.enabled = design;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     // The canvas must fit its container regardless of devicePixelRatio:
@@ -142,8 +142,8 @@ export function View3DCanvas(props: View3DCanvasProps): React.JSX.Element {
     sceneRef.current = scene;
     // Sky: an explicit scene background is honored even if the renderer's
     // clear color is overridden elsewhere.
-    (scene.getRoot() as unknown as THREE.Scene).background = new THREE.Color(0xcfe4f2);
-    renderer.setClearColor(0xcfe4f2, 1);
+    (scene.getRoot() as unknown as THREE.Scene).background = new THREE.Color(0xe8eee9);
+    renderer.setClearColor(0xe8eee9, 1);
     // Camera-change logging to the dev event log (in-the-app mode)
     const observer = props.home.getObserverCamera();
     observer.addPropertyChangeListener(() => {
@@ -193,11 +193,13 @@ export function View3DCanvas(props: View3DCanvasProps): React.JSX.Element {
       );
       const vfovHalf = THREE.MathUtils.degToRad(camera.fov / 2);
       const hfovHalf = Math.atan(Math.tan(vfovHalf) * aspect);
-      const distance = halfWidth / Math.tan(hfovHalf);
+      // The oblique projection needs room for the plan's diagonal as well as
+      // wall height; the preview panel is much narrower than the full editor.
+      const distance = (halfWidth / Math.tan(hfovHalf)) * 2.65;
       // A natural 3/4 exterior view: 40° around, 22° down, camera at 1.8x the
       // house height — the house reads clearly against the sky and ground.
-      const yaw = Math.PI * 0.22; // 40°
-      const pitch = 0.38; // ~22° looking down
+      const yaw = Math.PI * 0.26; // 47°
+      const pitch = 0.72; // bird's-eye view keeps both rooms legible
       const camElevation = centerZ + Math.sin(pitch) * distance * 1.05;
       setEyeLevelExterior(
         props.home,
@@ -211,29 +213,14 @@ export function View3DCanvas(props: View3DCanvasProps): React.JSX.Element {
       );
     };
 
-    // Design style: post-processing (GTAO) + image-based lighting captured
-    // from the home's own scene (one-bounce GI). Captured after the first
-    // frame so the scene has its lights; falls back to a neutral procedural
-    // environment if the capture fails.
-    let designComposer: DesignComposer | null = null;
+    // A neutral environment gives predictable colors in a small preview.
+    // The upstream GTAO pass currently blackens surfaces in the packaged app.
     let designEnv: DesignEnvironment | null = null;
-    let lastComposerWidth = -1;
-    let lastComposerHeight = -1;
-    if (design) {
-      designComposer = createDesignComposer(renderer, scene.getRoot(), camera);
-    }
 
     const render = (): void => {
       const width = container.clientWidth || 1;
       const height = container.clientHeight || 1;
       renderer!.setSize(width, height, false);
-      if (designComposer !== null) {
-        if (lastComposerWidth !== width || lastComposerHeight !== height) {
-          designComposer.setSize(width, height);
-          lastComposerWidth = width;
-          lastComposerHeight = height;
-        }
-      }
       view3DCamera.setAspect(width / height);
       // Adaptive near/far: a wide near:far ratio destroys depth precision at
       // distance (near=0.1/far=20000 resolves only ~10 cm at 4 m), which is
@@ -256,11 +243,7 @@ export function View3DCanvas(props: View3DCanvasProps): React.JSX.Element {
         camera.updateProjectionMatrix();
       }
       view3DCamera.update();
-      if (designComposer !== null) {
-        designComposer.composer.render();
-      } else {
-        renderer!.render(scene.getRoot() as THREE.Scene, camera);
-      }
+      renderer!.render(scene.getRoot() as THREE.Scene, camera);
       frameId = requestAnimationFrame(render);
     };
     let frameId = requestAnimationFrame(render);
@@ -270,11 +253,7 @@ export function View3DCanvas(props: View3DCanvasProps): React.JSX.Element {
       props.homeController3D.viewFromObserver();
       frameHome();
       if (design) {
-        try {
-          designEnv = createSceneEnvironment(renderer!, scene.getRoot(), { size: 128 });
-        } catch {
-          designEnv = createRoomEnvironment(renderer!);
-        }
+        designEnv = createRoomEnvironment(renderer!);
         (scene.getRoot() as unknown as THREE.Scene).environment = designEnv.texture;
       }
     });
@@ -292,7 +271,6 @@ export function View3DCanvas(props: View3DCanvasProps): React.JSX.Element {
       orbit.detach(container);
       view3DCamera.destroy();
       designEnv?.dispose();
-      designComposer?.dispose();
       scene.destroy();
       renderer!.dispose();
       renderer!.domElement.remove();
