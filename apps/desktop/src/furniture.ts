@@ -57,6 +57,38 @@ const materialColors: Record<string, number> = {
   _defaultMat: 0xf4f3ed,
 };
 
+export const furnitureFinishes = [
+  { id: "original", name: "Original", swatch: "#c69f79", colors: { wood: 0xc69f79, woodDark: 0x86664e, carpet: 0xc58374, carpetBlue: 0x7798a5 } },
+  { id: "areia", name: "Areia", swatch: "#d8c8ac", colors: { wood: 0xd8c8ac, woodDark: 0xab9476, carpet: 0xd6beaa, carpetBlue: 0xb4c4bc } },
+  { id: "grafite", name: "Grafite", swatch: "#626b68", colors: { wood: 0x74716c, woodDark: 0x4e504d, carpet: 0x696d6b, carpetBlue: 0x61747a } },
+  { id: "verde", name: "Verde", swatch: "#718e72", colors: { wood: 0xa48364, woodDark: 0x6f5844, carpet: 0x718e72, carpetBlue: 0x5d8380 } },
+] as const;
+
+export type FurnitureFinish = (typeof furnitureFinishes)[number]["id"];
+const finishableIds = new Set(["sofa", "poltrona", "mesa-centro", "rack", "cama-casal", "cama-solteiro", "criado-mudo", "estante", "mesa", "cadeira"]);
+
+export function canChangeFurnitureFinish(piece: HomePieceOfFurniture): boolean {
+  const id = piece.getCatalogId();
+  return id !== null && id.startsWith("casafeita-") && finishableIds.has(id.slice("casafeita-".length));
+}
+
+export function getFurnitureFinish(piece: HomePieceOfFurniture): FurnitureFinish {
+  const saved = piece.getProperty("casafeita.finish");
+  return furnitureFinishes.find((finish) => finish.id === saved)?.id ?? "original";
+}
+
+export function setFurnitureFinish(piece: HomePieceOfFurniture, finishId: FurnitureFinish): void {
+  if (!canChangeFurnitureFinish(piece)) return;
+  const finish = furnitureFinishes.find((item) => item.id === finishId);
+  if (!finish) return;
+  const existing = piece.getModelMaterials() ?? [];
+  piece.setModelMaterials(existing.map((material) => {
+    const color = finish.colors[material.getName() as keyof typeof finish.colors] ?? material.getColor();
+    return new HomeMaterial(material.getName(), material.getKey(), color, material.getTexture(), material.getShininess());
+  }));
+  piece.setProperty("casafeita.finish", finish.id);
+}
+
 class BundledModelContent implements Content {
   constructor(private readonly model: string) {}
 

@@ -14,7 +14,7 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
   try {
     const page = await app.firstWindow();
     const errors: string[] = [];
-    page.on("pageerror", (error) => errors.push(error.message));
+    page.on("pageerror", (error) => errors.push(error.stack ?? error.message));
     page.on("dialog", (dialog) => void dialog.accept());
     await expect(page.getByText("CasaFeita", { exact: true })).toBeVisible();
     await expect(page.getByTestId("plan-surface").locator("canvas")).toBeVisible();
@@ -39,6 +39,13 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
     await page.screenshot({ path: "test-results/furniture.png" });
     await page.getByRole("spinbutton", { name: "Largura" }).fill("220");
     await expect(page.getByRole("spinbutton", { name: "Largura" })).toHaveValue("220");
+    await page.getByRole("button", { name: "Grafite" }).click();
+    await expect(page.getByRole("button", { name: "Grafite" })).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("button", { name: "Duplicar" }).click();
+    expect(errors).toEqual([]);
+    await expect(page.getByText("2 móveis")).toBeVisible();
+    await expect(page.getByRole("status")).toBeHidden();
+    await page.screenshot({ path: "test-results/finish.png" });
     const exportPath = path.resolve("test-results", "casa-de-exemplo.sh3d");
     mkdirSync(path.dirname(exportPath), { recursive: true });
     await app.evaluate(({ dialog }, savePath) => {
@@ -57,8 +64,14 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
     await expect(page.getByText("Cópia .sh3d exportada")).toBeVisible();
     expect(existsSync(exportPath)).toBe(true);
     const savedHome = await new HomeFileRecorder().readHomeFromZip(new Uint8Array(readFileSync(exportPath)));
+    expect(savedHome.home.getFurniture()).toHaveLength(2);
     expect(savedHome.home.getFurniture()[0]?.getWidth()).toBe(220);
+    expect(savedHome.home.getFurniture()[1]?.getWidth()).toBe(220);
     expect(savedHome.home.getFurniture()[0]?.getModelMaterials()?.length).toBeGreaterThan(0);
+    expect(savedHome.home.getFurniture()[0]?.getModelMaterials()?.find((material) => material.getName() === "carpet")?.getColor()).toBe(0x696d6b);
+    expect(savedHome.home.getFurniture()[0]?.getProperty("casafeita.finish")).toBe("grafite");
+    expect(savedHome.home.getFurniture()[1]?.getProperty("casafeita.finish")).toBe("grafite");
+    expect(savedHome.home.getFurniture()[0]?.getX()).not.toBe(savedHome.home.getFurniture()[1]?.getX());
     await page.getByRole("button", { name: "Fechar" }).click();
 
     await page.getByRole("button", { name: "Novo projeto" }).click();
@@ -74,7 +87,7 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
     await page.getByRole("dialog", { name: "Meus projetos" }).getByRole("button", { name: "Abrir" }).click();
     await expect(page.getByText("6 paredes")).toBeVisible();
     await expect(page.getByText("2 cômodos")).toBeVisible();
-    await expect(page.getByText("1 móvel")).toBeVisible();
+    await expect(page.getByText("2 móveis")).toBeVisible();
     await expect.poll(hasSofaModel).toBe(true);
     expect(errors).toEqual([]);
   } finally {

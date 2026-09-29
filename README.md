@@ -10,9 +10,11 @@ CasaFeita é um projeto gratuito e open source de **aplicativo instalado** para 
 
 ![Biblioteca local de projetos](docs/preview-biblioteca.png)
 
-O modo **Mobiliar** inclui 16 modelos 3D reais de [Kenney](https://kenney.nl/assets/furniture-kit), organizados por ambiente. É possível inserir, mover na planta, girar, excluir e alterar largura, profundidade e altura. Os modelos e as medidas permanecem no `.sh3d` ao reabrir.
+O modo **Mobiliar** inclui 16 modelos 3D reais de [Kenney](https://kenney.nl/assets/furniture-kit), organizados por ambiente. É possível inserir, mover na planta, girar, duplicar, excluir, escolher entre quatro acabamentos para as peças compatíveis e alterar largura, profundidade e altura. Os acabamentos compartilham a mesma geometria 3D, evitando cópias desnecessárias dos modelos. Os modelos, acabamentos e medidas permanecem no `.sh3d` ao reabrir.
 
 ![Catálogo de móveis dentro do aplicativo](docs/preview-catalog.png)
+
+![Móvel selecionado com opções de acabamento e duplicação](docs/preview-acabamento.png)
 
 O modo **Passear** ocupa a tela e permite clicar no minimapa para caminhar até um ponto livre. Um duplo clique muda de lugar imediatamente. A pílula vertical de cômodos também escolhe destinos, e WASD, mouse e controle de velocidade permitem explorar o espaço. As rotas contornam paredes e móveis; destinos bloqueados são recusados.
 

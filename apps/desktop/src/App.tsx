@@ -32,7 +32,7 @@ import {
 import { PlanCanvas, RoomDialog, View3DCanvas, WallDialog } from "@sweethomejs/ui";
 import "@sweethomejs/ui/theme.css";
 import { createSession, createStarterHome, type Session } from "./session";
-import { furnitureCatalog, furnitureCategories, furnitureThumbnail, makeFurniture, type FurnitureCategory, type FurnitureDefinition } from "./furniture";
+import { canChangeFurnitureFinish, furnitureCatalog, furnitureCategories, furnitureFinishes, furnitureThumbnail, getFurnitureFinish, makeFurniture, setFurnitureFinish, type FurnitureCategory, type FurnitureDefinition } from "./furniture";
 import { nearestWalkable, planBounds } from "./navigation";
 import { Walkthrough } from "./Walkthrough";
 import { ProjectLibrary } from "./ProjectLibrary";
@@ -356,6 +356,14 @@ export function App(): React.JSX.Element {
     setFurnitureRevision((revision) => revision + 1);
   };
 
+  const duplicateFurniture = (piece: HomePieceOfFurniture): void => {
+    const copy = piece.duplicate();
+    copy.setX(piece.getX() + Math.max(35, piece.getWidth() / 3));
+    copy.setY(piece.getY() + Math.max(35, piece.getDepth() / 3));
+    session.controller.getFurnitureController().addFurniture([copy]);
+    setNotice(`${piece.getName()} duplicado. Arraste a cópia para posicionar.`);
+  };
+
   const furnitureInspector = selectedFurniture && <div className="furniture-inspector">
     <span className="section-eyebrow">MÓVEL SELECIONADO</span>
     <strong>{selectedFurniture.getName()}</strong>
@@ -365,7 +373,8 @@ export function App(): React.JSX.Element {
         <label key={dimension}>{label}<input type="number" min="10" max="1500" step="1" aria-label={label} value={Math.round(value)} onChange={(event) => setFurnitureSize(selectedFurniture, dimension, event.target.value)} /></label>,
       )}
     </div>
-    <div className="furniture-actions"><button onClick={() => { selectedFurniture.setAngle(selectedFurniture.getAngle() + Math.PI / 4); setFurnitureRevision((revision) => revision + 1); }}>Girar 45°</button><button onClick={() => session.controller.getFurnitureController().deleteSelection()}>Excluir</button></div>
+    {canChangeFurnitureFinish(selectedFurniture) && <div className="furniture-finishes"><span>Acabamento</span><div>{furnitureFinishes.map((finish) => <button key={finish.id} title={finish.name} aria-label={finish.name} aria-pressed={getFurnitureFinish(selectedFurniture) === finish.id} onClick={() => { setFurnitureFinish(selectedFurniture, finish.id); setFurnitureRevision((revision) => revision + 1); }}><i style={{ backgroundColor: finish.swatch }} /></button>)}</div></div>}
+    <div className="furniture-actions"><button onClick={() => { selectedFurniture.setAngle(selectedFurniture.getAngle() + Math.PI / 4); setFurnitureRevision((revision) => revision + 1); }}>Girar 45°</button><button onClick={() => duplicateFurniture(selectedFurniture)}>Duplicar</button><button onClick={() => session.controller.getFurnitureController().deleteSelection()}>Excluir</button></div>
   </div>;
 
   if (walkthrough) return <Walkthrough session={session} onExit={(targetMode) => { setWorkspaceMode(targetMode); setWalkthrough(false); }} />;

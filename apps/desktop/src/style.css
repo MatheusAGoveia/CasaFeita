@@ -103,6 +103,12 @@ button:disabled { cursor: default; }
 .furniture-measures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
 .furniture-measures label { display: flex; flex-direction: column; gap: 4px; color: #728677; font-size: 9px; }
 .furniture-measures input { min-width: 0; width: 100%; height: 32px; border: 1px solid #dce8dc; border-radius: 8px; background: #fff; padding: 0 5px; color: #304e3c; font-size: 11px; }
+.furniture-finishes { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 5px; }
+.furniture-finishes > span { color: #728677; font-size: 9px; }
+.furniture-finishes > div { display: flex; align-items: center; gap: 5px; }
+.furniture-finishes button { display: grid; place-items: center; width: 24px; height: 24px; padding: 2px; border: 1px solid transparent; border-radius: 50%; background: transparent; }
+.furniture-finishes button[aria-pressed="true"] { border-color: #315f50; }
+.furniture-finishes i { display: block; width: 17px; height: 17px; border: 1px solid #00000012; border-radius: 50%; }
 .furniture-actions { display: flex; gap: 7px; margin-top: 5px; }
 .furniture-actions button { flex: 1; height: 30px; border: 1px solid #cdded0; border-radius: 8px; background: #fff; color: #315f50; font-size: 10px; font-weight: 700; }
 .furniture-actions button:hover { background: #eaf3e9; }
