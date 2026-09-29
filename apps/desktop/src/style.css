@@ -127,6 +127,36 @@ button:disabled { cursor: default; }
 .dialog-container { width: min(510px, 100%); max-height: min(760px, 90vh); overflow: auto; background: #fff; border-radius: 20px; padding: 22px; box-shadow: 0 26px 80px #0d281b44; }
 .dialog-container button { border-radius: 9px; }
 .dialog-container input { border: 1px solid #dfe8de; border-radius: 8px; padding: 7px 9px; }
+.library-dialog { width: min(620px, 100%); max-height: min(720px, 92vh); display: flex; flex-direction: column; overflow: hidden; border-radius: 22px; background: #fff; box-shadow: 0 26px 80px #0d281b44; }
+.library-heading { display: flex; justify-content: space-between; gap: 12px; padding: 25px 27px 18px; border-bottom: 1px solid #edf0eb; }
+.library-heading h2 { margin: 6px 0 5px; color: #24382c; font-size: 22px; letter-spacing: -.7px; }
+.library-heading p { margin: 0; color: #8e9e92; font-size: 11px; line-height: 1.5; }
+.library-close { display: grid; place-items: center; flex: 0 0 33px; height: 33px; border: 1px solid #e5ece4; border-radius: 10px; background: #fff; color: #6d8172; }
+.library-close:hover { background: #f3f7f2; }
+.library-save-form { display: flex; flex-direction: column; gap: 8px; margin: 18px 26px 5px; padding: 15px; border: 1px solid #dce9dc; border-radius: 14px; background: #f7faf5; }
+.library-save-form label { color: #4d6e57; font-size: 11px; font-weight: 700; }
+.library-save-form > div { display: flex; gap: 8px; }
+.library-save-form input { flex: 1; min-width: 0; height: 38px; border: 1px solid #dce6d9; border-radius: 9px; background: #fff; padding: 0 10px; color: #243e2c; font-size: 12px; }
+.library-save-form button { display: flex; align-items: center; gap: 6px; height: 38px; padding: 0 13px; border: 0; border-radius: 9px; background: #315f50; color: #fff; font-size: 11px; font-weight: 700; }
+.library-save-form button:disabled { opacity: .45; }
+.library-save-form p { margin: 0; color: #a06e4c; font-size: 10px; line-height: 1.4; }
+.library-list-heading { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px 10px; }
+.library-list-heading strong { font-size: 12px; }
+.library-list-heading small { border-radius: 8px; padding: 5px 8px; background: #edf3ec; color: #53745d; font-size: 10px; font-weight: 700; }
+.library-projects { display: flex; flex-direction: column; gap: 8px; min-height: 58px; overflow: auto; padding: 0 26px 20px; }
+.library-empty { margin: 3px 0; padding: 20px 14px; border: 1px dashed #dce6da; border-radius: 12px; color: #92a095; font-size: 11px; text-align: center; }
+.library-project { display: flex; align-items: center; gap: 10px; min-height: 65px; padding: 10px; border: 1px solid #e7eee5; border-radius: 13px; background: #fdfefc; }
+.library-project-icon { display: grid; place-items: center; flex: 0 0 37px; height: 37px; border-radius: 10px; background: #edf4e9; color: #557963; }
+.library-project-copy { display: flex; flex: 1; flex-direction: column; gap: 5px; min-width: 0; }
+.library-project-copy strong { overflow: hidden; color: #34443a; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.library-project-copy small { color: #99a59a; font-size: 10px; }
+.library-project-action { height: 31px; padding: 0 11px; border: 1px solid #cfe0d0; border-radius: 8px; background: #f3f8f1; color: #315f50; font-size: 10px; font-weight: 700; }
+.library-project-action:hover { background: #e7f1e5; }
+.library-delete { display: grid; place-items: center; width: 31px; height: 31px; border: 1px solid #f0e6e2; border-radius: 8px; background: #fff; color: #a17b6d; }
+.library-delete:hover { background: #fff3ee; }
+.library-footer { display: flex; gap: 8px; padding: 15px 26px 20px; border-top: 1px solid #edf0eb; }
+.library-footer button { display: flex; align-items: center; justify-content: center; gap: 7px; flex: 1; height: 36px; border: 1px solid #dfe9df; border-radius: 10px; background: #fff; color: #55725d; font-size: 11px; font-weight: 700; }
+.library-footer button:hover { background: #f4f8f2; }
 .notice { position: fixed; z-index: 120; right: 28px; bottom: 26px; max-width: min(460px, calc(100vw - 56px)); padding: 12px 16px; border-radius: 12px; background: #294b3d; color: white; font-size: 12px; font-weight: 600; box-shadow: 0 14px 40px #102d1f3d; }
 
 .walk-shell { position: relative; width: 100%; height: 100%; overflow: hidden; background: #e8eee9; color: #21372b; }

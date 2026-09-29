@@ -14,7 +14,7 @@ Cada marco é pequeno o suficiente para ser revisado separadamente. Os commits d
 | 7. Assistência de IA | Propor entidades e alterações com procedência, confiança e revisão humana | Um conjunto de imagens de teste mostra o que foi preservado, inferido e corrigido; nenhuma foto vira geometria falsamente precisa. |
 | 8. Personalização e intercâmbio | Materiais, iluminação, GLB de móveis, exportação mais ampla e eventual render externo | Projeto continua editável, rápido para abrir e utilizável sem serviço pago obrigatório. |
 
-Atualização de 28/09/2026: o editor Windows, a interface 2D/3D, o catálogo inicial de 16 modelos e a primeira versão do passeio com minimapa foram implementados em commits separados. O marco de mobília ainda precisa de variantes e duplicação; o passeio ainda precisa de tratamento de escadas e níveis. A biblioteca gerenciada de até três projetos ainda precisa ser criada. As capturas e comandos de teste estão no [README](../README.md).
+Atualização de 28/09/2026: o editor Windows, a interface 2D/3D, o catálogo inicial de 16 modelos, a primeira versão do passeio com minimapa e a biblioteca local de até três projetos foram implementados em commits separados. O marco de mobília ainda precisa de variantes e duplicação; o passeio ainda precisa de tratamento de escadas e níveis. As capturas e comandos de teste estão no [README](../README.md).
 
 ## Ordem dos primeiros commits de código
 

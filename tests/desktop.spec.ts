@@ -8,6 +8,7 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
   const app = await electron.launch({
     executablePath: path.resolve("node_modules/electron/dist/electron.exe"),
     args: [path.resolve("apps/desktop")],
+    env: { ...process.env, CASAFEITA_TEST_USER_DATA: path.resolve("test-results", "desktop-profile") },
     timeout: 60000,
   });
   try {
@@ -43,12 +44,22 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
     await app.evaluate(({ dialog }, savePath) => {
       dialog.showSaveDialog = () => Promise.resolve({ canceled: false, filePath: savePath });
     }, exportPath);
-    await page.getByRole("button", { name: "Salvar" }).click();
-    await expect(page.getByText("Projeto salvo em arquivo editável")).toBeVisible();
+    await page.getByRole("button", { name: "Salvar", exact: true }).click();
+    const library = page.getByRole("dialog", { name: "Salvar projeto" });
+    await expect(library).toBeVisible();
+    await library.getByRole("button", { name: "Salvar novo" }).click();
+    await expect(page.getByText("Projeto salvo na biblioteca local")).toBeVisible();
+    await page.getByRole("button", { name: "Meus projetos" }).click();
+    await expect(page.getByRole("dialog", { name: "Meus projetos" }).getByText("1/3")).toBeVisible();
+    await expect(page.getByRole("status")).toBeHidden();
+    await page.screenshot({ path: "test-results/library.png" });
+    await page.getByRole("button", { name: "Exportar .sh3d" }).click();
+    await expect(page.getByText("Cópia .sh3d exportada")).toBeVisible();
     expect(existsSync(exportPath)).toBe(true);
     const savedHome = await new HomeFileRecorder().readHomeFromZip(new Uint8Array(readFileSync(exportPath)));
     expect(savedHome.home.getFurniture()[0]?.getWidth()).toBe(220);
     expect(savedHome.home.getFurniture()[0]?.getModelMaterials()?.length).toBeGreaterThan(0);
+    await page.getByRole("button", { name: "Fechar" }).click();
 
     await page.getByRole("button", { name: "Novo projeto" }).click();
     await expect(page.getByText("0 paredes")).toBeVisible();
@@ -59,10 +70,8 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
     await plan.click({ position: { x: bounds.width * 0.25, y: bounds.height * 0.35 } });
     await plan.dblclick({ position: { x: bounds.width * 0.45, y: bounds.height * 0.35 } });
     await expect(page.getByText(/[1-9] paredes/)).toBeVisible();
-    await app.evaluate(({ dialog }, filePath) => {
-      dialog.showOpenDialog = () => Promise.resolve({ canceled: false, filePaths: [filePath] });
-    }, exportPath);
-    await page.getByRole("button", { name: "Abrir projeto" }).click();
+    await page.getByRole("button", { name: "Meus projetos" }).click();
+    await page.getByRole("dialog", { name: "Meus projetos" }).getByRole("button", { name: "Abrir" }).click();
     await expect(page.getByText("6 paredes")).toBeVisible();
     await expect(page.getByText("2 cômodos")).toBeVisible();
     await expect(page.getByText("1 móvel")).toBeVisible();

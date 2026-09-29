@@ -4,9 +4,11 @@ CasaFeita é um projeto gratuito e open source de **aplicativo instalado** para 
 
 ## Estado atual
 
-**Prévia 0.1 para Windows.** O aplicativo instalado já desenha paredes, cômodos e cotas em uma planta editável, mostra a estrutura em 3D em tempo real e abre/salva projetos locais `.sh3d`. A interface CasaFeita usa uma seleção central em pílula e mantém as ferramentas de desenho discretas. O núcleo de edição deriva do SweetHomeJS; **Sweet Home 3D** orienta a profundidade funcional e **Floorplanner** orienta a clareza visual.
+**Prévia 0.1 para Windows.** O aplicativo instalado já desenha paredes, cômodos e cotas em uma planta editável e mostra a estrutura em 3D em tempo real. A biblioteca local guarda até três projetos por perfil do Windows; é possível importar e exportar arquivos `.sh3d` para manter cópias fora dela. A interface CasaFeita usa uma seleção central em pílula e mantém as ferramentas de desenho discretas. O núcleo de edição deriva do SweetHomeJS; **Sweet Home 3D** orienta a profundidade funcional e **Floorplanner** orienta a clareza visual.
 
 ![Editor CasaFeita com planta e vista 3D](docs/preview-editor.png)
+
+![Biblioteca local de projetos](docs/preview-biblioteca.png)
 
 O modo **Mobiliar** inclui 16 modelos 3D reais de [Kenney](https://kenney.nl/assets/furniture-kit), organizados por ambiente. É possível inserir, mover na planta, girar, excluir e alterar largura, profundidade e altura. Os modelos e as medidas permanecem no `.sh3d` ao reabrir.
 
@@ -16,7 +18,7 @@ O modo **Passear** ocupa a tela e permite clicar no minimapa para caminhar até 
 
 ![Passeio em primeira pessoa com minimapa e lista de cômodos](docs/preview-passeio.png)
 
-Esta é uma versão de desenvolvimento. Ampliação do catálogo, acabamento de materiais, escadas e biblioteca limitada a três projetos ainda estão no [roadmap](docs/roadmap.md). A exportação local `.sh3d` já funciona, sem conta nem serviço pago.
+Esta é uma versão de desenvolvimento. Ampliação do catálogo, acabamento de materiais, escadas e referência de fotos/plantas existentes ainda estão no [roadmap](docs/roadmap.md). A biblioteca e a exportação local funcionam sem conta nem serviço pago.
 
 ## Executar no Windows
 
@@ -31,7 +33,7 @@ npm start -w @casafeita/desktop
 
 Para gerar o instalador e um ZIP portátil, execute `npm run make -w @casafeita/desktop`. Os arquivos saem em `apps/desktop/out/make`. Se o gerenciador de pacotes bloquear o script de instalação do Electron e o executável estiver ausente, execute `node node_modules/electron/install.js` antes de iniciar. O instalador atual não é assinado digitalmente.
 
-Os testes de integração usam `npx playwright test tests/desktop.spec.ts tests/navigation.spec.ts tests/walkthrough.spec.ts`. Eles verificam o ciclo de salvar e reabrir, uma rota por uma porta sem atravessar obstáculos, teleporte, velocidade e colisão da caminhada na janela Electron.
+Os testes de integração usam `npx playwright test tests/`. Eles verificam o limite de três projetos, o ciclo de salvar, exportar e reabrir, uma rota por uma porta sem atravessar obstáculos, teleporte, velocidade e colisão da caminhada na janela Electron.
 
 - [Análise arquitetural e bases open source](docs/analise-arquitetural.md)
 - [Verificações da base candidata](docs/avaliacao-openplan3d.md)

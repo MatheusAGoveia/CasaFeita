@@ -1,8 +1,16 @@
 // Copyright (c) 2026 CasaFeita contributors. GPL-2.0-or-later.
 const { app, BrowserWindow, dialog, ipcMain, net, protocol } = require("electron");
 const fs = require("node:fs/promises");
+const fsSync = require("node:fs");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
+const { createLibrary } = require("./library.cjs");
+
+if (!app.isPackaged && process.env.CASAFEITA_TEST_USER_DATA) {
+  const testProfile = path.resolve(process.env.CASAFEITA_TEST_USER_DATA);
+  fsSync.mkdirSync(testProfile, { recursive: true });
+  app.setPath("userData", testProfile);
+}
 
 protocol.registerSchemesAsPrivileged([
   { scheme: "casafeita", privileges: { standard: true, secure: true, supportFetchAPI: true } },
@@ -56,6 +64,12 @@ function createWindow() {
 
 app.whenReady().then(() => {
   registerLocalProtocol();
+  const library = createLibrary(path.join(app.getPath("userData"), "projects"));
+
+  ipcMain.handle("library:list", (event) => { assertMainWindow(event); return library.list(); });
+  ipcMain.handle("library:open", (event, id) => { assertMainWindow(event); return library.open(id); });
+  ipcMain.handle("library:save", (event, id, name, data) => { assertMainWindow(event); return library.save(id, name, data); });
+  ipcMain.handle("library:delete", (event, id) => { assertMainWindow(event); return library.delete(id); });
 
   ipcMain.handle("project:open", async (event) => {
     assertMainWindow(event);
@@ -69,12 +83,12 @@ app.whenReady().then(() => {
     const stat = await fs.stat(filePath);
     if (stat.size > 200 * 1024 * 1024) throw new Error("Arquivo maior que 200 MB");
     const bytes = await fs.readFile(filePath);
-    return { name: path.basename(filePath), bytes: Array.from(bytes) };
+    return { name: path.basename(filePath), bytes: new Uint8Array(bytes) };
   });
 
   ipcMain.handle("project:save", async (event, suggestedName, data) => {
     assertMainWindow(event);
-    if (typeof suggestedName !== "string" || !Array.isArray(data) || data.length > 200 * 1024 * 1024) {
+    if (typeof suggestedName !== "string" || !(data instanceof Uint8Array) || data.length > 200 * 1024 * 1024) {
       throw new Error("Projeto inválido");
     }
     const bytes = Uint8Array.from(data);

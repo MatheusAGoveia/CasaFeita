@@ -35,6 +35,7 @@ import { createSession, createStarterHome, type Session } from "./session";
 import { furnitureCatalog, furnitureCategories, furnitureThumbnail, makeFurniture, type FurnitureCategory, type FurnitureDefinition } from "./furniture";
 import { nearestWalkable, planBounds } from "./navigation";
 import { Walkthrough } from "./Walkthrough";
+import { ProjectLibrary } from "./ProjectLibrary";
 
 type Dialog = { kind: "wall"; controller: WallController } | { kind: "room"; controller: RoomController } | null;
 
@@ -62,6 +63,10 @@ export function App(): React.JSX.Element {
   const [, setFurnitureRevision] = useState(0);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [notice, setNotice] = useState("");
+  const [libraryMode, setLibraryMode] = useState<"browse" | "save" | null>(null);
+  const [libraryProjects, setLibraryProjects] = useState<ManagedProject[]>([]);
+  const [libraryId, setLibraryId] = useState<string | null>(null);
+  const [libraryBusy, setLibraryBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const sessionRef = useRef(session);
   sessionRef.current = session;
@@ -119,6 +124,13 @@ export function App(): React.JSX.Element {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (walkthrough) return;
+      if (libraryMode || dialog) {
+        if (event.key === "Escape") {
+          setLibraryMode(null);
+          setDialog(null);
+        }
+        return;
+      }
       const active = document.activeElement;
       const editing = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement;
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
@@ -126,7 +138,7 @@ export function App(): React.JSX.Element {
         void saveProject();
       } else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "o") {
         event.preventDefault();
-        void openProject();
+        void showLibrary("browse");
       } else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
         event.preventDefault();
         if (event.shiftKey) sessionRef.current.controller.redo();
@@ -142,11 +154,13 @@ export function App(): React.JSX.Element {
     return () => window.removeEventListener("keydown", onKeyDown);
   });
 
-  const replaceHome = (home: Home): void => {
+  const replaceHome = (home: Home, projectId: string | null = null): void => {
     setDialog(null);
     setThreeExpanded(false);
     setWalkthrough(false);
     setWorkspaceMode("Planta");
+    setLibraryMode(null);
+    setLibraryId(projectId);
     setSession(createSession(home));
   };
 
@@ -160,22 +174,22 @@ export function App(): React.JSX.Element {
     setNotice("Projeto em branco criado");
   };
 
-  const loadBytes = async (bytes: Uint8Array): Promise<void> => {
+  const loadBytes = async (bytes: Uint8Array, projectId: string | null = null): Promise<void> => {
     try {
       const result = await new HomeFileRecorder().readHomeFromZip(bytes);
-      replaceHome(result.home);
+      replaceHome(result.home, projectId);
       setNotice("Projeto aberto");
     } catch (error) {
       setNotice(`Não foi possível abrir o projeto: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
-  const openProject = async (): Promise<void> => {
+  const openFile = async (): Promise<void> => {
     if (sessionRef.current.home.isModified() && !window.confirm("Abrir outro projeto? Salve as alterações antes de continuar.")) return;
     if (window.casaDesktop) {
       try {
-        const file = await window.casaDesktop.openProject();
-        if (file) await loadBytes(Uint8Array.from(file.bytes));
+        const file = await window.casaDesktop.openFile();
+        if (file) await loadBytes(file.bytes);
       } catch (error) {
         setNotice(`Não foi possível abrir o projeto: ${error instanceof Error ? error.message : String(error)}`);
       }
@@ -184,14 +198,54 @@ export function App(): React.JSX.Element {
     }
   };
 
+  const showLibrary = async (mode: "browse" | "save"): Promise<void> => {
+    if (!window.casaDesktop) {
+      if (mode === "browse") fileInput.current?.click();
+      else void exportProject();
+      return;
+    }
+    try {
+      setLibraryProjects(await window.casaDesktop.listProjects());
+      setLibraryMode(mode);
+    } catch (error) {
+      setNotice(`Não foi possível abrir a biblioteca: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+
+  const saveManaged = async (targetId: string | null, name: string): Promise<void> => {
+    if (!window.casaDesktop) return;
+    const home = sessionRef.current.home;
+    const previousName = home.getName();
+    setLibraryBusy(true);
+    try {
+      home.setName(name.trim());
+      const bytes = await new HomeFileRecorder().writeHome(home);
+      const saved = await window.casaDesktop.saveProject(targetId, name.trim(), bytes);
+      setLibraryId(saved.id);
+      setLibraryProjects(await window.casaDesktop.listProjects());
+      home.setModified(false);
+      setLibraryMode(null);
+      setNotice("Projeto salvo na biblioteca local");
+    } catch (error) {
+      home.setName(previousName);
+      setNotice(`Não foi possível salvar: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setLibraryBusy(false);
+    }
+  };
+
   const saveProject = async (): Promise<void> => {
+    if (libraryId) await saveManaged(libraryId, sessionRef.current.home.getName() || "Projeto sem título");
+    else await showLibrary("save");
+  };
+
+  const exportProject = async (): Promise<void> => {
     try {
       const home = sessionRef.current.home;
       const bytes = await new HomeFileRecorder().writeHome(home);
       const name = `${home.getName() || "CasaFeita"}.sh3d`;
       if (window.casaDesktop) {
-        const saved = await window.casaDesktop.saveProject(name, bytes);
-        if (!saved) return;
+        if (!await window.casaDesktop.exportFile(name, bytes)) return;
       } else {
         const url = URL.createObjectURL(new Blob([Uint8Array.from(bytes)], { type: "application/octet-stream" }));
         const anchor = document.createElement("a");
@@ -200,10 +254,39 @@ export function App(): React.JSX.Element {
         anchor.click();
         window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
-      home.setModified(false);
-      setNotice("Projeto salvo em arquivo editável");
+      setNotice("Cópia .sh3d exportada");
     } catch (error) {
-      setNotice(`Não foi possível salvar: ${error instanceof Error ? error.message : String(error)}`);
+      setNotice(`Não foi possível exportar: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+
+  const openManaged = async (id: string): Promise<void> => {
+    if (!window.casaDesktop) return;
+    if (sessionRef.current.home.isModified() && !window.confirm("Abrir outro projeto? Salve as alterações antes de continuar.")) return;
+    setLibraryBusy(true);
+    try {
+      const project = await window.casaDesktop.openProject(id);
+      await loadBytes(project.bytes, project.id);
+    } catch (error) {
+      setNotice(`Não foi possível abrir o projeto: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setLibraryBusy(false);
+    }
+  };
+
+  const deleteManaged = async (id: string): Promise<void> => {
+    if (!window.casaDesktop) return;
+    if (!window.confirm("Excluir este projeto da biblioteca local? Exporte uma cópia antes, se desejar guardá-lo.")) return;
+    setLibraryBusy(true);
+    try {
+      await window.casaDesktop.deleteProject(id);
+      setLibraryProjects(await window.casaDesktop.listProjects());
+      if (libraryId === id) setLibraryId(null);
+      setNotice("Projeto excluído da biblioteca");
+    } catch (error) {
+      setNotice(`Não foi possível excluir: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setLibraryBusy(false);
     }
   };
 
@@ -314,7 +397,7 @@ export function App(): React.JSX.Element {
 
         <div className="header-actions">
           <button className="header-icon" title="Novo projeto" aria-label="Novo projeto" onClick={newProject}><Plus size={19} /></button>
-          <button className="header-icon" title="Abrir projeto" aria-label="Abrir projeto" onClick={() => void openProject()}><FolderOpen size={19} /></button>
+          <button className="header-icon" title="Meus projetos" aria-label="Meus projetos" onClick={() => void showLibrary("browse")}><FolderOpen size={19} /></button>
           <button className="save-button" onClick={() => void saveProject()}><Save size={17} /><span>Salvar</span></button>
         </div>
       </header>
@@ -368,6 +451,10 @@ export function App(): React.JSX.Element {
       </main>
 
       {dialog && <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDialog(null); }}><div className="dialog-container" role="dialog" aria-modal="true" aria-label={dialog.kind === "wall" ? "Editar parede" : "Editar cômodo"}>{dialog.kind === "wall" ? <WallDialog controller={dialog.controller} preferences={session.preferences} onClose={() => setDialog(null)} /> : <RoomDialog controller={dialog.controller} onClose={() => setDialog(null)} />}</div></div>}
+      {libraryMode && <ProjectLibrary mode={libraryMode} projects={libraryProjects} currentId={libraryId} currentName={session.home.getName() || "Projeto sem título"} busy={libraryBusy} onClose={() => setLibraryMode(null)} onOpen={(id) => void openManaged(id)} onSave={(id, name) => {
+        if (id && !window.confirm("Substituir este projeto pelo trabalho atual?")) return;
+        void saveManaged(id, name);
+      }} onDelete={(id) => void deleteManaged(id)} onImport={() => void openFile()} onExport={() => void exportProject()} />}
       {notice && <div className="notice" role="status">{notice}</div>}
       <input ref={fileInput} type="file" accept=".sh3d" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) void file.arrayBuffer().then((buffer) => loadBytes(new Uint8Array(buffer))); event.target.value = ""; }} />
     </div>
