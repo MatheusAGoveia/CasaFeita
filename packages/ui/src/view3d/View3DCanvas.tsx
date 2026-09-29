@@ -49,6 +49,8 @@ export interface View3DCanvasProps {
   homeController3D: HomeController3D;
   /** 3D view style (docs/15 §7.5): "technical" (default) or "design". */
   style?: View3DStyle;
+  /** Keep the observer at person height and leave movement to the host UI. */
+  walkthrough?: boolean;
   onReady?: (scene: HomeScene3D) => void;
 }
 
@@ -140,6 +142,10 @@ export function View3DCanvas(props: View3DCanvasProps): React.JSX.Element {
       shadows: design,
     });
     sceneRef.current = scene;
+    if (design) {
+      // Soft ambient bounce keeps interior walls legible at person height.
+      scene.getRoot().add(new THREE.HemisphereLight(0xffffff, 0xd8d1c5, 0.85));
+    }
     // Sky: an explicit scene background is honored even if the renderer's
     // clear color is overridden elsewhere.
     (scene.getRoot() as unknown as THREE.Scene).background = new THREE.Color(0xe8eee9);
@@ -251,7 +257,7 @@ export function View3DCanvas(props: View3DCanvasProps): React.JSX.Element {
     // Frame the home on the first frame (after the scene exists)
     requestAnimationFrame(() => {
       props.homeController3D.viewFromObserver();
-      frameHome();
+      if (!props.walkthrough) frameHome();
       if (design) {
         designEnv = createRoomEnvironment(renderer!);
         (scene.getRoot() as unknown as THREE.Scene).environment = designEnv.texture;
@@ -260,15 +266,17 @@ export function View3DCanvas(props: View3DCanvasProps): React.JSX.Element {
 
     // ------------------------------------------------------------ navigation
     const orbit = new OrbitNavigator(props.home, camera, () => frameHome());
-    orbit.attach(container);
-    orbit.dblClickRef = () => frameHome();
+    if (!props.walkthrough) {
+      orbit.attach(container);
+      orbit.dblClickRef = () => frameHome();
+    }
 
     props.onReady?.(scene);
     (globalThis as unknown as { __homeScene?: unknown }).__homeScene = scene;
 
     return () => {
       cancelAnimationFrame(frameId);
-      orbit.detach(container);
+      if (!props.walkthrough) orbit.detach(container);
       view3DCamera.destroy();
       designEnv?.dispose();
       scene.destroy();
@@ -280,7 +288,7 @@ export function View3DCanvas(props: View3DCanvasProps): React.JSX.Element {
       (globalThis as unknown as { __homeScene?: unknown }).__homeScene = undefined;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.home, props.homeController3D, props.preferences, props.style]);
+  }, [props.home, props.homeController3D, props.preferences, props.style, props.walkthrough]);
 
   return <div ref={containerRef} style={{ width: "100%", height: "100%" }} data-testid="view3d" />;
 }

@@ -33,6 +33,8 @@ import { PlanCanvas, RoomDialog, View3DCanvas, WallDialog } from "@sweethomejs/u
 import "@sweethomejs/ui/theme.css";
 import { createSession, createStarterHome, type Session } from "./session";
 import { furnitureCatalog, furnitureCategories, furnitureThumbnail, makeFurniture, type FurnitureCategory, type FurnitureDefinition } from "./furniture";
+import { nearestWalkable, planBounds } from "./navigation";
+import { Walkthrough } from "./Walkthrough";
 
 type Dialog = { kind: "wall"; controller: WallController } | { kind: "room"; controller: RoomController } | null;
 
@@ -52,6 +54,7 @@ export function App(): React.JSX.Element {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [threeExpanded, setThreeExpanded] = useState(false);
+  const [walkthrough, setWalkthrough] = useState(false);
   const [pillOpen, setPillOpen] = useState(false);
   const [workspaceMode, setWorkspaceMode] = useState<"Planta" | "Mobiliar">("Planta");
   const [furnitureCategory, setFurnitureCategory] = useState<"Todos" | FurnitureCategory>("Todos");
@@ -115,6 +118,7 @@ export function App(): React.JSX.Element {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
+      if (walkthrough) return;
       const active = document.activeElement;
       const editing = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement;
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
@@ -141,6 +145,7 @@ export function App(): React.JSX.Element {
   const replaceHome = (home: Home): void => {
     setDialog(null);
     setThreeExpanded(false);
+    setWalkthrough(false);
     setWorkspaceMode("Planta");
     setSession(createSession(home));
   };
@@ -202,6 +207,36 @@ export function App(): React.JSX.Element {
     }
   };
 
+  const enterWalkthrough = (): void => {
+    const home = session.home;
+    const bounds = planBounds(home);
+    if (!bounds) {
+      setNotice("Desenhe uma planta antes de iniciar o passeio.");
+      return;
+    }
+    const firstRoom = home.getRooms()[0];
+    const center = firstRoom ? {
+      x: (Math.min(...firstRoom.getPoints().map((point) => point[0]!)) + Math.max(...firstRoom.getPoints().map((point) => point[0]!))) / 2,
+      y: (Math.min(...firstRoom.getPoints().map((point) => point[1]!)) + Math.max(...firstRoom.getPoints().map((point) => point[1]!))) / 2,
+    } : { x: (bounds.minX + bounds.maxX) / 2, y: (bounds.minY + bounds.maxY) / 2 };
+    const start = nearestWalkable(home, center);
+    if (!start) {
+      setNotice("Não há espaço livre para começar o passeio.");
+      return;
+    }
+    const camera = home.getObserverCamera();
+    camera.setX(start.x);
+    camera.setY(start.y);
+    camera.setZ(160);
+    camera.setYaw(Math.PI / 2);
+    camera.setPitch(0.12);
+    camera.setFieldOfView(Math.PI * 72 / 180);
+    session.controller.getHomeController3D().viewFromObserver();
+    setPillOpen(false);
+    setThreeExpanded(false);
+    setWalkthrough(true);
+  };
+
   const selectedItem = selected.length === 1 ? selected[0] : null;
   const selectedLabel = selectedItem instanceof Wall ? "Parede selecionada" : selectedItem instanceof Room ? "Cômodo selecionado" : null;
   const selectedFurniture = selectedItem instanceof HomePieceOfFurniture ? selectedItem : null;
@@ -250,6 +285,8 @@ export function App(): React.JSX.Element {
     <div className="furniture-actions"><button onClick={() => { selectedFurniture.setAngle(selectedFurniture.getAngle() + Math.PI / 4); setFurnitureRevision((revision) => revision + 1); }}>Girar 45°</button><button onClick={() => session.controller.getFurnitureController().deleteSelection()}>Excluir</button></div>
   </div>;
 
+  if (walkthrough) return <Walkthrough session={session} onExit={(targetMode) => { setWorkspaceMode(targetMode); setWalkthrough(false); }} />;
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -269,7 +306,7 @@ export function App(): React.JSX.Element {
               <span className="mode-line" />
               {workspaceMode !== "Planta" && <button onClick={() => { setPillOpen(false); setWorkspaceMode("Planta"); }}><DraftingCompass size={17} /><span>Planta</span></button>}
               <button onClick={() => { setPillOpen(false); setThreeExpanded(true); }}><Box size={17} /><span>Visualizar 3D</span></button>
-              <button disabled title="Passeio em desenvolvimento"><span className="mode-symbol">↗</span><span>Passear</span></button>
+              <button onClick={enterWalkthrough}><span className="mode-symbol">↗</span><span>Passear</span></button>
               {workspaceMode !== "Mobiliar" && <button onClick={() => { setPillOpen(false); setThreeExpanded(false); setWorkspaceMode("Mobiliar"); }}><Shapes size={16} /><span>Mobiliar</span></button>}
             </div>}
           </div>

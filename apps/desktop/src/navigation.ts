@@ -194,7 +194,7 @@ export function findWalkPath(home: Home, start: PlanPoint, target: PlanPoint): P
       if (closed[next]) continue;
       const to = pointOf(next);
       if (walkable[next] === 0) walkable[next] = isWalkable(home, to) ? 1 : -1;
-      if (walkable[next] < 0 || !segmentIsWalkable(home, from, to)) continue;
+      if (walkable[next]! < 0 || !segmentIsWalkable(home, from, to)) continue;
       const cost = costs[current]! + Math.hypot(dx! * step, dy! * step);
       if (cost >= costs[next]!) continue;
       costs[next] = cost;

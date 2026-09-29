@@ -12,7 +12,11 @@ O modo **Mobiliar** inclui 16 modelos 3D reais de [Kenney](https://kenney.nl/ass
 
 ![Catálogo de móveis dentro do aplicativo](docs/preview-catalog.png)
 
-Esta é uma versão de desenvolvimento. Ampliação do catálogo, passeio em primeira pessoa, minimapa com navegação e biblioteca limitada a três projetos ainda estão no [roadmap](docs/roadmap.md). A exportação local `.sh3d` já funciona, sem conta nem serviço pago.
+O modo **Passear** ocupa a tela e permite clicar no minimapa para caminhar até um ponto livre. Um duplo clique muda de lugar imediatamente. A pílula vertical de cômodos também escolhe destinos, e WASD, mouse e controle de velocidade permitem explorar o espaço. As rotas contornam paredes e móveis; destinos bloqueados são recusados.
+
+![Passeio em primeira pessoa com minimapa e lista de cômodos](docs/preview-passeio.png)
+
+Esta é uma versão de desenvolvimento. Ampliação do catálogo, acabamento de materiais, escadas e biblioteca limitada a três projetos ainda estão no [roadmap](docs/roadmap.md). A exportação local `.sh3d` já funciona, sem conta nem serviço pago.
 
 ## Executar no Windows
 
@@ -27,7 +31,7 @@ npm start -w @casafeita/desktop
 
 Para gerar o instalador e um ZIP portátil, execute `npm run make -w @casafeita/desktop`. Os arquivos saem em `apps/desktop/out/make`. Se o gerenciador de pacotes bloquear o script de instalação do Electron e o executável estiver ausente, execute `node node_modules/electron/install.js` antes de iniciar. O instalador atual não é assinado digitalmente.
 
-O teste de integração do aplicativo usa `npx playwright test tests/desktop.spec.ts`; ele desenha uma parede e verifica que planta, móvel, medida e modelo 3D sobrevivem ao ciclo de salvar e reabrir na janela Electron.
+Os testes de integração usam `npx playwright test tests/desktop.spec.ts tests/navigation.spec.ts tests/walkthrough.spec.ts`. Eles verificam o ciclo de salvar e reabrir, uma rota por uma porta sem atravessar obstáculos, teleporte, velocidade e colisão da caminhada na janela Electron.
 
 - [Análise arquitetural e bases open source](docs/analise-arquitetural.md)
 - [Verificações da base candidata](docs/avaliacao-openplan3d.md)
