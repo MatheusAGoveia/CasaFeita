@@ -55,6 +55,7 @@ export function createSession(home: Home): Session {
 export function createStarterHome(): Home {
   const home = new Home();
   home.setName("Casa de exemplo");
+  home.getEnvironment().setGroundColor(0xd7ded6);
 
   const addWall = (x1: number, y1: number, x2: number, y2: number, thickness = 18): void => {
     const wall = new Wall(x1, y1, x2, y2, thickness, 265);

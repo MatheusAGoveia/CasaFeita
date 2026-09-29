@@ -6,7 +6,11 @@ Os arquivos em `packages/` foram derivados de [njhurst/sweethomejs](https://gith
 
 SweetHomeJS traduz partes do [Sweet Home 3D](https://www.sweethome3d.com/) e declara licença **GNU GPL versão 2 ou posterior**. Sweet Home 3D: copyright © 2024 Space Mushrooms e autores anteriores. SweetHomeJS: copyright © 2026 colaboradores do projeto. Consulte os cabeçalhos dos arquivos e a [página oficial de licenças](https://www.sweethome3d.com/license/). A cópia integral da GPL v2 está em [LICENSE](LICENSE).
 
-Os pacotes importados têm dependências próprias declaradas nos respectivos `package.json`; suas licenças são mantidas por seus titulares. Nenhum catálogo de móveis de terceiros foi incluído nesta etapa.
+Os pacotes importados têm dependências próprias declaradas nos respectivos `package.json`; suas licenças são mantidas por seus titulares.
+
+## Modelos de móveis de Kenney
+
+Os 16 modelos `.obj` e suas miniaturas `.png` em `apps/desktop/public/models/kenney/` vêm do [Furniture Kit de Kenney](https://kenney.nl/assets/furniture-kit), distribuído sob **Creative Commons Zero (CC0 1.0)**. Foram selecionados do arquivo oficial `kenney_furniture-kit.zip` (pastas `Models/OBJ format` e `Isometric`, vista `SE`). A licença que acompanha o pacote está preservada em [License.txt](apps/desktop/public/models/kenney/License.txt). As dimensões em centímetros e a paleta usada no editor são escolhas do CasaFeita; podem ser alteradas pelo usuário. Atribuição não é exigida pela CC0, mas registramos Kenney como criador dos modelos.
 
 ## Código original do CasaFeita
 

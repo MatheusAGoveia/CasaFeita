@@ -84,6 +84,28 @@ button:disabled { cursor: default; }
 .side-section-title span { font-size: 13px; font-weight: 700; }
 .side-section-title small { border-radius: 8px; background: #eef3ec; color: #5e806e; padding: 5px 7px; font-size: 10px; font-weight: 700; }
 .side-muted { font-size: 12px; line-height: 1.55; color: #96a39a; }
+.catalog-intro { margin: -5px 1px 14px; color: #89988f; font-size: 11px; line-height: 1.55; }
+.catalog-search { width: 100%; height: 36px; border: 1px solid #e0e8df; border-radius: 10px; background: #fafcf9; padding: 0 11px; color: #315f50; font-size: 12px; }
+.catalog-search::placeholder { color: #a3afa5; }
+.catalog-categories { display: flex; gap: 5px; overflow-x: auto; margin: 12px -2px 14px; padding: 1px 2px 5px; scrollbar-width: thin; }
+.catalog-categories button { flex: 0 0 auto; border: 1px solid #e6ece4; border-radius: 100px; background: #fff; color: #7e8f82; padding: 6px 10px; font-size: 10px; font-weight: 700; }
+.catalog-categories button.selected { background: #315f50; border-color: #315f50; color: #fff; }
+.catalog-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.catalog-card { display: flex; flex-direction: column; text-align: left; min-width: 0; padding: 7px; border: 1px solid #e9eee7; border-radius: 13px; background: #fff; transition: border-color .15s, transform .15s, box-shadow .15s; }
+.catalog-card:hover { border-color: #bfd7c6; transform: translateY(-2px); box-shadow: 0 8px 22px #325c4014; }
+.catalog-image { display: grid; place-items: center; width: 100%; height: 79px; border-radius: 9px; background: #f6f7f1; }
+.catalog-image img { max-width: 86%; max-height: 72px; object-fit: contain; }
+.catalog-card strong { margin: 8px 4px 3px; color: #33443a; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.catalog-card small { margin: 0 4px 4px; color: #98a69a; font-size: 10px; }
+.furniture-inspector { display: flex; flex-direction: column; gap: 6px; margin: 12px 0 17px; padding: 14px; border: 1px solid #dce9dc; border-radius: 13px; background: #f6f9f4; }
+.furniture-inspector > strong { color: #34463c; font-size: 13px; }
+.furniture-inspector p { margin: 0 0 4px; color: #8b9a8d; font-size: 10px; }
+.furniture-measures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.furniture-measures label { display: flex; flex-direction: column; gap: 4px; color: #728677; font-size: 9px; }
+.furniture-measures input { min-width: 0; width: 100%; height: 32px; border: 1px solid #dce8dc; border-radius: 8px; background: #fff; padding: 0 5px; color: #304e3c; font-size: 11px; }
+.furniture-actions { display: flex; gap: 7px; margin-top: 5px; }
+.furniture-actions button { flex: 1; height: 30px; border: 1px solid #cdded0; border-radius: 8px; background: #fff; color: #315f50; font-size: 10px; font-weight: 700; }
+.furniture-actions button:hover { background: #eaf3e9; }
 .room-list { display: flex; flex-direction: column; gap: 9px; }
 .room-row { display: flex; align-items: center; gap: 11px; min-height: 61px; padding: 10px 13px; border: 1px solid #edf0eb; border-radius: 13px; color: #92a199; background: #fdfefc; }
 .room-symbol { width: 32px; height: 32px; flex: 0 0 32px; border-radius: 10px; display: grid; place-items: center; background: #edf3e9; color: #527360; }
@@ -121,4 +143,13 @@ button:disabled { cursor: default; }
   .tool-rail { width: 56px; flex-basis: 56px; }
   .side-panel { width: 245px; flex-basis: 245px; }
   .side-panel.expanded { left: 78px; right: 12px; top: 12px; bottom: 12px; }
+}
+
+@media (max-height: 760px) {
+  .app-header { height: 74px; flex-basis: 74px; }
+  .side-heading { height: 67px; flex-basis: 67px; }
+  .side-panel.furnishing:not(.expanded) .three-view { height: 135px; min-height: 135px; }
+  .side-panel.furnishing:not(.expanded) .side-content { padding-top: 14px; padding-bottom: 14px; }
+  .side-panel.furnishing:not(.expanded) .side-foot { min-height: 50px; padding-top: 7px; padding-bottom: 7px; }
+  .side-panel.furnishing:not(.expanded) .side-foot p { line-height: 1.3; }
 }

@@ -22,6 +22,7 @@ import {
 import {
   Home,
   HomeFileRecorder,
+  HomePieceOfFurniture,
   PlanController,
   Room,
   RoomController,
@@ -31,6 +32,7 @@ import {
 import { PlanCanvas, RoomDialog, View3DCanvas, WallDialog } from "@sweethomejs/ui";
 import "@sweethomejs/ui/theme.css";
 import { createSession, createStarterHome, type Session } from "./session";
+import { furnitureCatalog, furnitureCategories, furnitureThumbnail, makeFurniture, type FurnitureCategory, type FurnitureDefinition } from "./furniture";
 
 type Dialog = { kind: "wall"; controller: WallController } | { kind: "room"; controller: RoomController } | null;
 
@@ -46,11 +48,15 @@ export function App(): React.JSX.Element {
   const [session, setSession] = useState<Session>(() => createSession(createStarterHome()));
   const [mode, setMode] = useState(session.controller.getPlanController().getMode().toString());
   const [selected, setSelected] = useState(() => session.home.getSelectedItems());
-  const [counts, setCounts] = useState(() => ({ rooms: session.home.getRooms().length, walls: session.home.getWalls().length }));
+  const [counts, setCounts] = useState(() => ({ rooms: session.home.getRooms().length, walls: session.home.getWalls().length, furniture: session.home.getFurniture().length }));
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [threeExpanded, setThreeExpanded] = useState(false);
   const [pillOpen, setPillOpen] = useState(false);
+  const [workspaceMode, setWorkspaceMode] = useState<"Planta" | "Mobiliar">("Planta");
+  const [furnitureCategory, setFurnitureCategory] = useState<"Todos" | FurnitureCategory>("Todos");
+  const [furnitureSearch, setFurnitureSearch] = useState("");
+  const [, setFurnitureRevision] = useState(0);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [notice, setNotice] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
@@ -66,7 +72,7 @@ export function App(): React.JSX.Element {
   useEffect(() => {
     const { home, preferences, controller } = session;
     const plan = controller.getPlanController();
-    const syncCounts = (): void => setCounts({ rooms: home.getRooms().length, walls: home.getWalls().length });
+    const syncCounts = (): void => setCounts({ rooms: home.getRooms().length, walls: home.getWalls().length, furniture: home.getFurniture().length });
     const syncSelection = (): void => setSelected(home.getSelectedItems());
     const syncUndo = (): void => {
       setCanUndo(controller.isUndoEnabled());
@@ -80,6 +86,7 @@ export function App(): React.JSX.Element {
     const collectionListener = { collectionChanged: syncCounts };
     home.addWallsListener(collectionListener);
     home.addRoomsListener(collectionListener);
+    home.addFurnitureListener(collectionListener);
     home.addSelectionListener(syncSelection);
     controller.addUndoStateListener(syncUndo);
     plan.addPropertyChangeListener(PlanController.Property.MODE, modeListener);
@@ -99,6 +106,7 @@ export function App(): React.JSX.Element {
     return () => {
       home.removeWallsListener(collectionListener);
       home.removeRoomsListener(collectionListener);
+      home.removeFurnitureListener(collectionListener);
       home.removeSelectionListener(syncSelection);
       controller.removeUndoStateListener(syncUndo);
       plan.removePropertyChangeListener(PlanController.Property.MODE, modeListener);
@@ -133,6 +141,7 @@ export function App(): React.JSX.Element {
   const replaceHome = (home: Home): void => {
     setDialog(null);
     setThreeExpanded(false);
+    setWorkspaceMode("Planta");
     setSession(createSession(home));
   };
 
@@ -140,6 +149,7 @@ export function App(): React.JSX.Element {
     if (session.home.isModified() && !window.confirm("Criar outro projeto? Salve as alterações antes de continuar.")) return;
     const home = new Home();
     home.setName("Novo projeto");
+    home.getEnvironment().setGroundColor(0xd7ded6);
     home.setModified(false);
     replaceHome(home);
     setNotice("Projeto em branco criado");
@@ -194,6 +204,51 @@ export function App(): React.JSX.Element {
 
   const selectedItem = selected.length === 1 ? selected[0] : null;
   const selectedLabel = selectedItem instanceof Wall ? "Parede selecionada" : selectedItem instanceof Room ? "Cômodo selecionado" : null;
+  const selectedFurniture = selectedItem instanceof HomePieceOfFurniture ? selectedItem : null;
+  const visibleFurniture = furnitureCatalog.filter((item) =>
+    (furnitureCategory === "Todos" || item.category === furnitureCategory) &&
+    item.name.toLocaleLowerCase("pt-BR").includes(furnitureSearch.toLocaleLowerCase("pt-BR")),
+  );
+
+  const addFurniture = (item: FurnitureDefinition): void => {
+    const piece = makeFurniture(item);
+    const target = selectedItem instanceof Room ? selectedItem : session.home.getRooms()[0];
+    if (target) {
+      const points = target.getPoints();
+      const centerX = (Math.min(...points.map((p) => p[0]!)) + Math.max(...points.map((p) => p[0]!))) / 2;
+      const centerY = (Math.min(...points.map((p) => p[1]!)) + Math.max(...points.map((p) => p[1]!))) / 2;
+      const offset = (session.home.getFurniture().length % 3 - 1) * 45;
+      piece.setX(centerX + offset);
+      piece.setY(centerY + offset);
+    } else {
+      piece.setX(200);
+      piece.setY(200);
+    }
+    session.controller.getPlanController().setMode(PlanController.Mode.SELECTION);
+    session.controller.getFurnitureController().addFurniture([piece]);
+    setNotice(`${item.name} adicionado. Arraste na planta para posicionar.`);
+  };
+
+  const setFurnitureSize = (piece: HomePieceOfFurniture, dimension: "width" | "depth" | "height", value: string): void => {
+    const centimeters = Number(value);
+    if (!Number.isFinite(centimeters) || centimeters < 10 || centimeters > 1500) return;
+    if (dimension === "width") piece.setWidth(centimeters);
+    if (dimension === "depth") piece.setDepth(centimeters);
+    if (dimension === "height") piece.setHeight(centimeters);
+    setFurnitureRevision((revision) => revision + 1);
+  };
+
+  const furnitureInspector = selectedFurniture && <div className="furniture-inspector">
+    <span className="section-eyebrow">MÓVEL SELECIONADO</span>
+    <strong>{selectedFurniture.getName()}</strong>
+    <p>Medidas em centímetros</p>
+    <div className="furniture-measures">
+      {([ ["width", "Largura", selectedFurniture.getWidth()], ["depth", "Profundidade", selectedFurniture.getDepth()], ["height", "Altura", selectedFurniture.getHeight()] ] as const).map(([dimension, label, value]) =>
+        <label key={dimension}>{label}<input type="number" min="10" max="1500" step="1" aria-label={label} value={Math.round(value)} onChange={(event) => setFurnitureSize(selectedFurniture, dimension, event.target.value)} /></label>,
+      )}
+    </div>
+    <div className="furniture-actions"><button onClick={() => { selectedFurniture.setAngle(selectedFurniture.getAngle() + Math.PI / 4); setFurnitureRevision((revision) => revision + 1); }}>Girar 45°</button><button onClick={() => session.controller.getFurnitureController().deleteSelection()}>Excluir</button></div>
+  </div>;
 
   return (
     <div className="app-shell">
@@ -208,13 +263,14 @@ export function App(): React.JSX.Element {
         <div className="mode-wrap">
           <div className={`mode-pill ${pillOpen ? "open" : ""}`}>
             <button className="mode-current" onClick={() => setPillOpen(!pillOpen)} aria-expanded={pillOpen} aria-label="Alternar modo">
-              <DraftingCompass size={17} /><span>Planta</span><ChevronDown size={15} className={pillOpen ? "turned" : ""} />
+              <DraftingCompass size={17} /><span>{workspaceMode}</span><ChevronDown size={15} className={pillOpen ? "turned" : ""} />
             </button>
             {pillOpen && <div className="mode-extra">
               <span className="mode-line" />
+              {workspaceMode !== "Planta" && <button onClick={() => { setPillOpen(false); setWorkspaceMode("Planta"); }}><DraftingCompass size={17} /><span>Planta</span></button>}
               <button onClick={() => { setPillOpen(false); setThreeExpanded(true); }}><Box size={17} /><span>Visualizar 3D</span></button>
               <button disabled title="Passeio em desenvolvimento"><span className="mode-symbol">↗</span><span>Passear</span></button>
-              <button disabled title="Catálogo de móveis em desenvolvimento"><Shapes size={16} /><span>Mobiliar</span></button>
+              {workspaceMode !== "Mobiliar" && <button onClick={() => { setPillOpen(false); setThreeExpanded(false); setWorkspaceMode("Mobiliar"); }}><Shapes size={16} /><span>Mobiliar</span></button>}
             </div>}
           </div>
         </div>
@@ -245,21 +301,32 @@ export function App(): React.JSX.Element {
             <PlanCanvas key={session.home.getName() ?? "novo"} home={session.home} preferences={session.preferences} controller={session.controller.getPlanController()} />
             {counts.walls === 0 && <div className="empty-tip"><span className="empty-icon"><DraftingCompass size={24} /></span><strong>Comece pela planta</strong><p>Desenhe as paredes para ver seu espaço ganhar forma.</p><button onClick={() => session.controller.getPlanController().setMode(PlanController.Mode.WALL_CREATION)}>Desenhar paredes <ArrowUpRight size={16} /></button></div>}
           </div>
-          <div className="canvas-footer"><span className="grid-dot" />Escala em centímetros <span className="footer-sep">·</span> {counts.walls} paredes <span className="footer-sep">·</span> {counts.rooms} cômodos <span className="footer-push" /> Ferramenta: {tools.find((item) => item.mode.toString() === mode)?.label ?? "Selecionar"}</div>
+          <div className="canvas-footer"><span className="grid-dot" />Escala em centímetros <span className="footer-sep">·</span> {counts.walls} paredes <span className="footer-sep">·</span> {counts.rooms} cômodos <span className="footer-sep">·</span> {counts.furniture} {counts.furniture === 1 ? "móvel" : "móveis"} <span className="footer-push" /> Ferramenta: {tools.find((item) => item.mode.toString() === mode)?.label ?? "Selecionar"}</div>
         </section>
 
-        <aside className={`side-panel ${threeExpanded ? "expanded" : ""}`}>
+        <aside className={`side-panel ${threeExpanded ? "expanded" : ""} ${workspaceMode === "Mobiliar" ? "furnishing" : ""}`}>
           <div className="side-heading"><div><span className="section-eyebrow">VISUALIZAÇÃO</span><strong>Seu projeto em 3D</strong></div><button className="expand-button" title={threeExpanded ? "Reduzir 3D" : "Ampliar 3D"} aria-label={threeExpanded ? "Reduzir 3D" : "Ampliar 3D"} onClick={() => setThreeExpanded(!threeExpanded)}>{threeExpanded ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button></div>
           <div className="three-view" data-testid="three-view"><View3DCanvas home={session.home} preferences={session.preferences} homeController3D={session.controller.getHomeController3D()} style="design" /><div className="three-label"><span className="live-dot" /> Prévia em tempo real</div></div>
           <div className="side-content">
+            {workspaceMode === "Mobiliar" ? <>
+              <div className="side-section-title"><span>Mobiliar</span><small>{furnitureCatalog.length.toString().padStart(2, "0")}</small></div>
+              <p className="catalog-intro">Peças com medidas padrão. Escolha uma e ajuste diretamente na planta.</p>
+              {furnitureInspector}
+              <input className="catalog-search" type="search" aria-label="Buscar móveis" placeholder="Buscar móvel" value={furnitureSearch} onChange={(event) => setFurnitureSearch(event.target.value)} />
+              <div className="catalog-categories"><button className={furnitureCategory === "Todos" ? "selected" : ""} onClick={() => setFurnitureCategory("Todos")}>Todos</button>{furnitureCategories.map((category) => <button key={category} className={furnitureCategory === category ? "selected" : ""} onClick={() => setFurnitureCategory(category)}>{category}</button>)}</div>
+              <div className="catalog-grid">{visibleFurniture.map((item) => <button className="catalog-card" key={item.id} onClick={() => addFurniture(item)}><span className="catalog-image"><img src={furnitureThumbnail(item)} alt="" loading="lazy" /></span><strong>{item.name}</strong><small>{item.width} × {item.depth} cm</small></button>)}</div>
+              {visibleFurniture.length === 0 && <p className="side-muted">Nenhum móvel encontrado.</p>}
+            </> : <>
             <div className="side-section-title"><span>Cômodos</span><small>{counts.rooms.toString().padStart(2, "0")}</small></div>
             {counts.rooms === 0 ? <p className="side-muted">Os ambientes aparecerão aqui depois de desenhados.</p> : <div className="room-list">{session.home.getRooms().map((room, index) => <div className="room-row" key={room.getId() ?? index}><span className="room-symbol"><House size={16} /></span><span className="room-copy"><strong>{room.getName() || `Cômodo ${index + 1}`}</strong><small>{(room.getArea() / 10000).toFixed(1)} m²</small></span><ArrowUpRight size={15} /></div>)}</div>}
             {selectedLabel && <div className="selection-card"><div><span className="section-eyebrow">SELEÇÃO</span><strong>{selectedLabel}</strong></div><button onClick={() => {
               if (selectedItem instanceof Wall) setDialog({ kind: "wall", controller: new WallController(session.home, session.preferences, {} as never, null) });
               if (selectedItem instanceof Room) setDialog({ kind: "room", controller: new RoomController(session.home, session.preferences, {} as never, null) });
             }}>Editar <ArrowUpRight size={14} /></button></div>}
+            {furnitureInspector}
+            </>}
           </div>
-          <div className="side-foot"><span className="side-foot-icon"><Box size={17} /></span><p>A estrutura que você desenha aparece automaticamente na vista 3D.</p></div>
+          <div className="side-foot"><span className="side-foot-icon"><Box size={17} /></span><p>{workspaceMode === "Mobiliar" ? "Modelos livres de Kenney. Arraste o móvel na planta e ajuste suas medidas." : "A estrutura que você desenha aparece automaticamente na vista 3D."}</p></div>
         </aside>
       </main>
 

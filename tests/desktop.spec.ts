@@ -1,7 +1,8 @@
 // Copyright (c) 2026 CasaFeita contributors. GPL-2.0-or-later.
 import { _electron as electron, expect, test } from "@playwright/test";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { HomeFileRecorder } from "@sweethomejs/core";
 
 test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async () => {
   const app = await electron.launch({
@@ -18,15 +19,36 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
     await expect(page.getByTestId("plan-surface").locator("canvas")).toBeVisible();
     await expect(page.getByText("6 paredes")).toBeVisible();
     await expect(page.getByText("2 cômodos")).toBeVisible();
+    await page.screenshot({ path: "test-results/editor.png" });
+    await page.getByRole("button", { name: "Alternar modo" }).click();
+    await page.getByRole("button", { name: "Mobiliar" }).click();
+    await expect(page.getByRole("button", { name: /Sofá/ })).toBeVisible();
+    await page.screenshot({ path: "test-results/catalog.png" });
+    await page.getByRole("button", { name: /Sofá/ }).click();
+    await expect(page.getByText("1 móvel")).toBeVisible();
+    await expect(page.getByText("Sofá", { exact: true }).first()).toBeVisible();
+    const hasSofaModel = () => page.evaluate(() => {
+      let found = false;
+      (globalThis as unknown as { __homeScene?: { getRoot(): { traverse(visit: (object: { isMesh?: boolean; name?: string }) => void): void } } }).__homeScene?.getRoot().traverse((object) => {
+        if (object.isMesh && object.name === "loungeSofa") found = true;
+      });
+      return found;
+    });
+    await expect.poll(hasSofaModel).toBe(true);
+    await page.screenshot({ path: "test-results/furniture.png" });
+    await page.getByRole("spinbutton", { name: "Largura" }).fill("220");
+    await expect(page.getByRole("spinbutton", { name: "Largura" })).toHaveValue("220");
     const exportPath = path.resolve("test-results", "casa-de-exemplo.sh3d");
     mkdirSync(path.dirname(exportPath), { recursive: true });
-    await page.screenshot({ path: "test-results/editor.png" });
     await app.evaluate(({ dialog }, savePath) => {
       dialog.showSaveDialog = () => Promise.resolve({ canceled: false, filePath: savePath });
     }, exportPath);
     await page.getByRole("button", { name: "Salvar" }).click();
     await expect(page.getByText("Projeto salvo em arquivo editável")).toBeVisible();
     expect(existsSync(exportPath)).toBe(true);
+    const savedHome = await new HomeFileRecorder().readHomeFromZip(new Uint8Array(readFileSync(exportPath)));
+    expect(savedHome.home.getFurniture()[0]?.getWidth()).toBe(220);
+    expect(savedHome.home.getFurniture()[0]?.getModelMaterials()?.length).toBeGreaterThan(0);
 
     await page.getByRole("button", { name: "Novo projeto" }).click();
     await expect(page.getByText("0 paredes")).toBeVisible();
@@ -43,6 +65,8 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
     await page.getByRole("button", { name: "Abrir projeto" }).click();
     await expect(page.getByText("6 paredes")).toBeVisible();
     await expect(page.getByText("2 cômodos")).toBeVisible();
+    await expect(page.getByText("1 móvel")).toBeVisible();
+    await expect.poll(hasSofaModel).toBe(true);
     expect(errors).toEqual([]);
   } finally {
     await app.close();

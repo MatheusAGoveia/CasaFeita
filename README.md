@@ -8,7 +8,11 @@ CasaFeita é um projeto gratuito e open source de **aplicativo instalado** para 
 
 ![Editor CasaFeita com planta e vista 3D](docs/preview-editor.png)
 
-Esta é uma versão de desenvolvimento. O catálogo de móveis com modelos reais, passeio em primeira pessoa, minimapa com navegação e biblioteca limitada a três projetos ainda estão no [roadmap](docs/roadmap.md). A exportação local `.sh3d` já funciona, sem conta nem serviço pago.
+O modo **Mobiliar** inclui 16 modelos 3D reais de [Kenney](https://kenney.nl/assets/furniture-kit), organizados por ambiente. É possível inserir, mover na planta, girar, excluir e alterar largura, profundidade e altura. Os modelos e as medidas permanecem no `.sh3d` ao reabrir.
+
+![Catálogo de móveis dentro do aplicativo](docs/preview-catalog.png)
+
+Esta é uma versão de desenvolvimento. Ampliação do catálogo, passeio em primeira pessoa, minimapa com navegação e biblioteca limitada a três projetos ainda estão no [roadmap](docs/roadmap.md). A exportação local `.sh3d` já funciona, sem conta nem serviço pago.
 
 ## Executar no Windows
 
@@ -23,7 +27,7 @@ npm start -w @casafeita/desktop
 
 Para gerar o instalador e um ZIP portátil, execute `npm run make -w @casafeita/desktop`. Os arquivos saem em `apps/desktop/out/make`. Se o gerenciador de pacotes bloquear o script de instalação do Electron e o executável estiver ausente, execute `node node_modules/electron/install.js` antes de iniciar. O instalador atual não é assinado digitalmente.
 
-O teste de integração do aplicativo usa `npx playwright test tests/desktop.spec.ts`; ele cria, salva e reabre uma planta na janela Electron.
+O teste de integração do aplicativo usa `npx playwright test tests/desktop.spec.ts`; ele desenha uma parede e verifica que planta, móvel, medida e modelo 3D sobrevivem ao ciclo de salvar e reabrir na janela Electron.
 
 - [Análise arquitetural e bases open source](docs/analise-arquitetural.md)
 - [Verificações da base candidata](docs/avaliacao-openplan3d.md)
