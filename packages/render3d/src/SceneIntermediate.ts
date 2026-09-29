@@ -169,6 +169,30 @@ export function buildSceneIntermediate(
   const collectionListener = { collectionChanged: () => rebuildStaticItems() };
   home.addWallsListener(collectionListener);
   home.addRoomsListener(collectionListener);
+  const furnitureListener = { collectionChanged: () => rebuildFurniture() };
+  home.addFurnitureListener(furnitureListener);
+
+  const rebuildFurniture = (): void => {
+    const keep: Object3DBase[] = [];
+    for (const builder of builders) {
+      if (builder instanceof FurnitureObject3D) {
+        group.remove(builder.getRoot());
+        builder.destroy();
+      } else {
+        keep.push(builder);
+      }
+    }
+    builders.length = 0;
+    builders.push(...keep);
+    for (const piece of home.getFurniture()) {
+      if (piece.getModel() !== null) {
+        const builder = new FurnitureObject3D(piece, home, preferences, materialCache, modelManager);
+        builders.push(builder);
+        group.add(builder.getRoot());
+      }
+    }
+    groundBuilder?.update();
+  };
 
   const rebuildStaticItems = (): void => {
     const keep: Object3DBase[] = [];
@@ -199,6 +223,7 @@ export function buildSceneIntermediate(
   const dispose = (): void => {
     home.removeWallsListener(collectionListener);
     home.removeRoomsListener(collectionListener);
+    home.removeFurnitureListener(furnitureListener);
     for (const builder of builders) {
       builder.destroy();
     }

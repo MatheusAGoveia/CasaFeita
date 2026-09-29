@@ -284,10 +284,14 @@ export class FurnitureObject3D extends Object3DBase<HomePieceOfFurniture> {
         return;
       }
       const mesh = child as THREE.Mesh;
-      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      // The model cache shares source materials between pieces. Clone them
+      // before applying each piece's palette or editing one changes all.
+      const materials = (Array.isArray(mesh.material) ? mesh.material : [mesh.material])
+        .map((material) => material.clone());
+      mesh.material = Array.isArray(mesh.material) ? materials : materials[0]!;
       for (const material of materials) {
         const standard = material as THREE.MeshStandardMaterial;
-        if (standard.color === undefined || standard.roughness === undefined) {
+        if (standard.color === undefined) {
           continue;
         }
         const modelMaterial =
@@ -318,7 +322,7 @@ export class FurnitureObject3D extends Object3DBase<HomePieceOfFurniture> {
           }
           standard.needsUpdate = true;
         }
-        if (shininess > 0) {
+        if (shininess > 0 && standard.roughness !== undefined) {
           // Mirror MaterialCache's shininess→roughness approximation
           standard.roughness = Math.max(0, 1 - shininess / 128);
           standard.needsUpdate = true;

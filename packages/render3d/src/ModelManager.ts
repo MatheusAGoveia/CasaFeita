@@ -274,7 +274,11 @@ export class ModelManager {
     // The clone carries the normalization scale (model fits a 1-unit box);
     // MULTIPLY by the piece dimensions instead of overwriting, so models that
     // are not already 1-unit-sized render at their piece size.
-    child.scale.multiply(new THREE.Vector3(scaleX, height, depth));
+    const dimensions = new THREE.Vector3(scaleX, height, depth);
+    child.scale.multiply(dimensions);
+    // normalizeModel also translates the source to its center. Scale that
+    // translation with the piece or the mesh sits outside its plan footprint.
+    child.position.multiply(dimensions);
     target.add(child);
   }
 
