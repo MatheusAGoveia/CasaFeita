@@ -2,6 +2,7 @@
   "name": "@casafeita/desktop",
   "productName": "CasaFeita",
   "version": "0.1.0",
+  "type": "module",
   "description": "Aplicativo livre para desenhar plantas e visualizar casas em 3D",
   "author": "CasaFeita contributors",
   "private": true,
