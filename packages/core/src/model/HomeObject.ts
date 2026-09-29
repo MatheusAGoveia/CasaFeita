@@ -66,7 +66,7 @@ export abstract class HomeObject {
 
   // Plain-callback convenience API; adapts to the JavaBeans-style listener
   // objects the support expects (so identity-based removal keeps working).
-  private readonly callbackListeners = new WeakMap<(evt: unknown) => void, PropertyChangeListener>();
+  private callbackListeners = new WeakMap<(evt: unknown) => void, PropertyChangeListener>();
 
   addPropertyChangeListener(listener: (evt: unknown) => void): void {
     let record = this.callbackListeners.get(listener);
@@ -193,6 +193,7 @@ export abstract class HomeObject {
     copy.idValue = this.idValue;
     copy.properties = this.properties !== null ? new Map(this.properties) : null;
     copy.propertyChangeSupportValue = null;
+    copy.callbackListeners = new WeakMap();
   }
 
   /** Returns a clone of this object (same id, no listeners). */
