@@ -227,7 +227,6 @@ export function App(): React.JSX.Element {
       const bytes = await new HomeFileRecorder().writeHome(home);
       const saved = await window.casaDesktop.saveProject(targetId, name.trim(), bytes);
       setLibraryId(saved.id);
-      setLibraryProjects(await window.casaDesktop.listProjects());
       home.setModified(false);
       setLibraryMode(null);
       setNotice("Projeto salvo na biblioteca local");
