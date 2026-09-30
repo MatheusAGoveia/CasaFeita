@@ -1,8 +1,8 @@
 // Copyright (c) 2026 CasaFeita contributors. GPL-2.0-or-later.
 import { expect, test } from "@playwright/test";
-import { Home, Wall } from "@sweethomejs/core";
+import { Home, Room, Wall } from "@sweethomejs/core";
 import { furnitureCatalog, makeFurniture } from "../apps/desktop/src/furniture";
-import { findWalkPath, isWalkable, nearestWalkable, segmentIsWalkable } from "../apps/desktop/src/navigation";
+import { findWalkPath, isWalkable, nearestWalkable, planBounds, segmentIsWalkable } from "../apps/desktop/src/navigation";
 
 function homeWithDoorway(): Home {
   const home = new Home();
@@ -49,4 +49,13 @@ test("coordenadas inválidas nunca são caminháveis", () => {
   expect(isWalkable(home, { x: 100, y: 100 }, -1)).toBe(false);
   expect(segmentIsWalkable(home, { x: 100, y: 100 }, { x: Infinity, y: 100 })).toBe(false);
   expect(findWalkPath(home, { x: 100, y: 100 }, { x: NaN, y: 100 })).toBeNull();
+});
+
+test("limites de planta suportam muitos vértices e rejeitam geometria inválida", () => {
+  const home = new Home();
+  home.addRoom(new Room(Array.from({ length: 70000 }, (_, index) => [index, index % 2])));
+  expect(planBounds(home)).toEqual({ minX: 0, minY: 0, maxX: 69999, maxY: 1 });
+  const invalid = new Home();
+  invalid.addRoom(new Room([[0, 0], [NaN, 10], [10, 10]]));
+  expect(planBounds(invalid)).toBeNull();
 });

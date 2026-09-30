@@ -7,20 +7,23 @@ export interface PlanBounds { minX: number; minY: number; maxX: number; maxY: nu
 export const WALKER_RADIUS = 18; // cm, clearance from walls and furniture
 
 export function planBounds(home: Home): PlanBounds | null {
-  const points: PlanPoint[] = [];
+  const bounds: PlanBounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+  let invalid = false;
+  const include = (x: number, y: number): void => {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) { invalid = true; return; }
+    bounds.minX = Math.min(bounds.minX, x);
+    bounds.minY = Math.min(bounds.minY, y);
+    bounds.maxX = Math.max(bounds.maxX, x);
+    bounds.maxY = Math.max(bounds.maxY, y);
+  };
   for (const wall of home.getWalls()) {
-    points.push({ x: wall.getXStart(), y: wall.getYStart() }, { x: wall.getXEnd(), y: wall.getYEnd() });
+    include(wall.getXStart(), wall.getYStart());
+    include(wall.getXEnd(), wall.getYEnd());
   }
   for (const room of home.getRooms()) {
-    for (const [x, y] of room.getPoints()) points.push({ x: x!, y: y! });
+    for (const [x, y] of room.getPoints()) include(x!, y!);
   }
-  if (points.length === 0) return null;
-  return {
-    minX: Math.min(...points.map((point) => point.x)),
-    minY: Math.min(...points.map((point) => point.y)),
-    maxX: Math.max(...points.map((point) => point.x)),
-    maxY: Math.max(...points.map((point) => point.y)),
-  };
+  return invalid || bounds.minX === Infinity ? null : bounds;
 }
 
 function distanceToSegment(point: PlanPoint, a: PlanPoint, b: PlanPoint): number {
