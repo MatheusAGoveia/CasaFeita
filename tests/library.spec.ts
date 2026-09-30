@@ -1,7 +1,8 @@
 // Copyright (c) 2026 CasaFeita contributors. GPL-2.0-or-later.
 import { expect, test } from "@playwright/test";
 import path from "node:path";
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import * as fileSystem from "node:fs/promises";
+import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import libraryModule from "../apps/desktop/electron/library.cjs";
 
 test("biblioteca local mantém três projetos e permite substituir ou excluir", async () => {
@@ -42,4 +43,18 @@ test("biblioteca informa índice corrompido ou versão desconhecida", async () =
   await expect(library.list()).rejects.toThrow("Biblioteca de projetos corrompida");
   await writeFile(file, JSON.stringify({ version: 1, projects: [{ id: "12345678-1234-1234-1234-123456789abc", name: "Sala", updatedAt: "ontem" }] }));
   await expect(library.list()).rejects.toThrow("Biblioteca de projetos corrompida");
+});
+
+test("falha ao atualizar índice remove arquivo temporário", async () => {
+  const directory = path.resolve("test-results", "library-index-failure");
+  const index = path.join(directory, "projects.json");
+  const io = {
+    ...fileSystem,
+    rename: async (from: string, to: string) => {
+      if (to === index) throw new Error("falha simulada no índice");
+      return fileSystem.rename(from, to);
+    },
+  };
+  await expect(libraryModule.createLibrary(directory, io).save(null, "Sala", [1])).rejects.toThrow("falha simulada");
+  expect((await readdir(directory)).some((name) => name.endsWith(".tmp"))).toBe(false);
 });

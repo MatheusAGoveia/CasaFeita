@@ -7,13 +7,13 @@ const MAX_PROJECTS = 3;
 const MAX_BYTES = 200 * 1024 * 1024;
 const ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function createLibrary(directory) {
+function createLibrary(directory, io = fs) {
   const manifestPath = path.join(directory, "projects.json");
   let queue = Promise.resolve();
 
   const readEntries = async () => {
     let raw;
-    try { raw = await fs.readFile(manifestPath, "utf8"); }
+    try { raw = await io.readFile(manifestPath, "utf8"); }
     catch (error) {
       if (error.code === "ENOENT") return [];
       throw error;
@@ -32,10 +32,14 @@ function createLibrary(directory) {
   };
 
   const writeEntries = async (entries) => {
-    await fs.mkdir(directory, { recursive: true });
+    await io.mkdir(directory, { recursive: true });
     const temporary = path.join(directory, `${randomUUID()}.tmp`);
-    await fs.writeFile(temporary, JSON.stringify({ version: 1, projects: entries }, null, 2), "utf8");
-    await fs.rename(temporary, manifestPath);
+    try {
+      await io.writeFile(temporary, JSON.stringify({ version: 1, projects: entries }, null, 2), "utf8");
+      await io.rename(temporary, manifestPath);
+    } finally {
+      await io.rm(temporary, { force: true }).catch(() => {});
+    }
   };
 
   const runExclusive = (operation) => {
@@ -56,9 +60,9 @@ function createLibrary(directory) {
       if (!entry) throw new Error("Projeto não encontrado");
       const file = path.join(directory, `${id}.sh3d`);
       try {
-        const stat = await fs.stat(file);
+        const stat = await io.stat(file);
         if (stat.size > MAX_BYTES) throw new Error("Projeto maior que 200 MB");
-        const bytes = await fs.readFile(file);
+        const bytes = await io.readFile(file);
         if (bytes.length > MAX_BYTES) throw new Error("Projeto maior que 200 MB");
         return { ...entry, bytes: new Uint8Array(bytes) };
       } catch (error) {
@@ -78,10 +82,10 @@ function createLibrary(directory) {
         if (!existing && entries.length >= MAX_PROJECTS) throw new Error("Limite de 3 projetos atingido. Exclua um projeto ou escolha qual substituir.");
         const projectId = existing?.id ?? randomUUID();
         const entry = { id: projectId, name: name.trim(), updatedAt: new Date().toISOString() };
-        await fs.mkdir(directory, { recursive: true });
+        await io.mkdir(directory, { recursive: true });
         const temporary = path.join(directory, `${randomUUID()}.tmp`);
-        await fs.writeFile(temporary, Uint8Array.from(data));
-        await fs.rename(temporary, path.join(directory, `${projectId}.sh3d`));
+        await io.writeFile(temporary, Uint8Array.from(data));
+        await io.rename(temporary, path.join(directory, `${projectId}.sh3d`));
         await writeEntries([...entries.filter((project) => project.id !== projectId), entry]);
         return entry;
       });
@@ -92,7 +96,7 @@ function createLibrary(directory) {
         const entries = await readEntries();
         if (!entries.some((project) => project.id === id)) return false;
         await writeEntries(entries.filter((project) => project.id !== id));
-        await fs.rm(path.join(directory, `${id}.sh3d`), { force: true });
+        await io.rm(path.join(directory, `${id}.sh3d`), { force: true });
         return true;
       });
     },
