@@ -289,10 +289,10 @@ export function App(): React.JSX.Element {
     if (!window.confirm("Excluir este projeto da biblioteca local? Exporte uma cópia antes, se desejar guardá-lo.")) return;
     setLibraryBusy(true);
     try {
-      await window.casaDesktop.deleteProject(id);
+      const deleted = await window.casaDesktop.deleteProject(id);
       setLibraryProjects(await window.casaDesktop.listProjects());
       if (libraryId === id) setLibraryId(null);
-      setNotice("Projeto excluído da biblioteca");
+      setNotice(deleted ? "Projeto excluído da biblioteca" : "Projeto já não estava na biblioteca");
     } catch (error) {
       setNotice(`Não foi possível excluir: ${error instanceof Error ? error.message : String(error)}`);
     } finally {

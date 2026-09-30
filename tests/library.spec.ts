@@ -18,6 +18,7 @@ test("biblioteca local mantém três projetos e permite substituir ou excluir", 
   expect((await library.open(first.id)).bytes).toEqual(Uint8Array.from([5, 6]));
   expect((await library.open(first.id)).name).toBe("Sala atualizada");
   expect(await library.delete(first.id)).toBe(true);
+  expect(await library.delete(first.id)).toBe(false);
   expect(await library.list()).toHaveLength(2);
   await library.save(null, "Novo espaço", bytes);
   expect(await library.list()).toHaveLength(3);
