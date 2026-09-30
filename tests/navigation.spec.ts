@@ -2,7 +2,7 @@
 import { expect, test } from "@playwright/test";
 import { Home, Room, Wall } from "@sweethomejs/core";
 import { furnitureCatalog, makeFurniture } from "../apps/desktop/src/furniture";
-import { findWalkPath, isWalkable, nearestWalkable, planBounds, segmentIsWalkable } from "../apps/desktop/src/navigation";
+import { findWalkPath, isWalkable, moveWithSlide, nearestWalkable, planBounds, segmentIsWalkable } from "../apps/desktop/src/navigation";
 
 function homeWithDoorway(): Home {
   const home = new Home();
@@ -65,4 +65,15 @@ test("segmento excessivo é recusado antes de percorrer milhões de amostras", (
   home.addRoom(new Room([[0, 0], [1_000_000, 0], [1_000_000, 100], [0, 100]]));
   expect(segmentIsWalkable(home, { x: 1, y: 50 }, { x: 999_999, y: 50 })).toBe(false);
   expect(findWalkPath(home, { x: 1, y: 50 }, { x: 999_999, y: 50 })).toBeNull();
+});
+
+test("deslizamento diagonal nunca termina dentro de um móvel", () => {
+  const home = new Home();
+  home.addRoom(new Room([[0, 0], [100, 0], [100, 100], [0, 100]]));
+  const piece = makeFurniture(furnitureCatalog[0]!);
+  piece.setX(50); piece.setY(50); piece.setWidth(20); piece.setDepth(20);
+  home.addPieceOfFurniture(piece);
+  const moved = moveWithSlide(home, { x: 0, y: 0 }, { x: 30, y: 30 });
+  expect(moved).toEqual({ x: 30, y: 0 });
+  expect(isWalkable(home, moved)).toBe(true);
 });

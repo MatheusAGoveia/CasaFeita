@@ -4,7 +4,7 @@ import { ArrowLeft, ChevronDown, Footprints, House, MapPin, MousePointer2 } from
 import { View3DCanvas } from "@sweethomejs/ui";
 import type { Room } from "@sweethomejs/core";
 import type { Session } from "./session";
-import { findWalkPath, isWalkable, nearestWalkable, planBounds, segmentIsWalkable, type PlanPoint } from "./navigation";
+import { findWalkPath, isWalkable, moveWithSlide, nearestWalkable, planBounds, segmentIsWalkable, type PlanPoint } from "./navigation";
 
 interface WalkthroughProps {
   session: Session;
@@ -131,14 +131,9 @@ export function Walkthrough({ session, onExit }: WalkthroughProps): React.JSX.El
         if (length > 0) {
           const from = { x: observer.getX(), y: observer.getY() };
           const next = { x: from.x + dx / length * remaining, y: from.y + dy / length * remaining };
-          if (segmentIsWalkable(home, from, next)) {
-            observer.setX(next.x); observer.setY(next.y);
-          } else {
-            const slideX = { x: next.x, y: from.y };
-            const slideY = { x: from.x, y: next.y };
-            if (segmentIsWalkable(home, from, slideX)) observer.setX(slideX.x);
-            if (segmentIsWalkable(home, { x: observer.getX(), y: from.y }, slideY)) observer.setY(slideY.y);
-          }
+          const moved = moveWithSlide(home, from, next);
+          observer.setX(moved.x);
+          observer.setY(moved.y);
         }
       } else if (routeRef.current.length > 0) {
         while (remaining > 0 && routeRef.current.length > 0) {

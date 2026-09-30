@@ -70,6 +70,16 @@ export function segmentIsWalkable(home: Home, from: PlanPoint, to: PlanPoint): b
   return true;
 }
 
+export function moveWithSlide(home: Home, from: PlanPoint, target: PlanPoint): PlanPoint {
+  if (segmentIsWalkable(home, from, target)) return target;
+  let current = from;
+  const alongX = { x: target.x, y: from.y };
+  if (segmentIsWalkable(home, current, alongX)) current = alongX;
+  const alongY = { x: current.x, y: target.y };
+  if (segmentIsWalkable(home, current, alongY)) current = alongY;
+  return current;
+}
+
 export function nearestWalkable(home: Home, target: PlanPoint): PlanPoint | null {
   if (isWalkable(home, target)) return target;
   for (let radius = 20; radius <= 180; radius += 20) {
