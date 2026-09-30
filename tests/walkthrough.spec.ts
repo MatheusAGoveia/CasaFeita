@@ -36,6 +36,16 @@ test("minimapa caminha, duplo clique teleporta e controle ajusta velocidade", as
     await page.mouse.click(target.x, target.y);
     await expect(page.getByText(/Caminhando até o destino/)).toBeVisible();
     await expect.poll(async () => (await cameraPosition())?.x ?? 0, { timeout: 5000 }).toBeGreaterThan(start!.x + 20);
+    const blocked = await page.getByTestId("minimap").evaluate((svg: SVGSVGElement) => {
+      const point = svg.createSVGPoint();
+      point.x = 360; point.y = 100;
+      const mapped = point.matrixTransform(svg.getScreenCTM()!);
+      return { x: mapped.x, y: mapped.y };
+    });
+    await page.mouse.click(blocked.x, blocked.y);
+    await expect(page.getByText("Escolha um ponto livre dentro da planta.")).toBeVisible();
+    await expect(page.getByTestId("minimap").locator("polyline")).toHaveCount(0);
+    await page.mouse.click(target.x, target.y);
     await page.getByRole("slider", { name: "Velocidade do passeio" }).fill("2");
     await expect(page.getByText("2.0 m/s")).toBeVisible();
     await page.mouse.dblclick(target.x, target.y);

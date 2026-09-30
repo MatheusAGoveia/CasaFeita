@@ -40,12 +40,12 @@ export function Walkthrough({ session, onExit }: WalkthroughProps): React.JSX.El
   };
 
   const navigate = (target: PlanPoint, instant: boolean): void => {
+    cancelRoute();
     if (!isWalkable(home, target)) {
       setNotice("Escolha um ponto livre dentro da planta.");
       return;
     }
     if (instant) {
-      cancelRoute();
       observer.setX(target.x);
       observer.setY(target.y);
       setNotice("Destino alcançado.");
