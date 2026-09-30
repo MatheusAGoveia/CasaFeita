@@ -61,6 +61,9 @@ test("minimapa caminha, duplo clique teleporta e controle ajusta velocidade", as
     expect((await cameraPosition())!.x).toBeLessThan(835);
     await page.getByRole("button", { name: "Voltar ao editor" }).click();
     await expect(page.getByTestId("plan-surface")).toBeVisible();
+    await page.getByRole("button", { name: "Alternar modo" }).click();
+    await page.getByRole("button", { name: "Passear" }).click();
+    await expect(page.getByRole("slider", { name: "Velocidade do passeio" })).toHaveValue("2");
     expect(errors).toEqual([]);
   } finally {
     await app.close();

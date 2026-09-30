@@ -11,6 +11,17 @@ interface WalkthroughProps {
   onExit(mode: "Planta" | "Mobiliar"): void;
 }
 
+const SPEED_KEY = "casafeita.walkSpeed";
+
+function savedWalkSpeed(): number {
+  try {
+    const value = Number(window.localStorage.getItem(SPEED_KEY));
+    return Number.isFinite(value) && value >= 0.5 && value <= 2.5 ? value : 1.2;
+  } catch {
+    return 1.2;
+  }
+}
+
 function roomCenter(room: Room): PlanPoint {
   const points = room.getPoints();
   return {
@@ -23,7 +34,7 @@ export function Walkthrough({ session, onExit }: WalkthroughProps): React.JSX.El
   const home = session.home;
   const observer = home.getObserverCamera();
   const [pose, setPose] = useState(() => ({ x: observer.getX(), y: observer.getY(), yaw: observer.getYaw() }));
-  const [speed, setSpeed] = useState(1.2);
+  const [speed, setSpeed] = useState(savedWalkSpeed);
   const [route, setRoute] = useState<PlanPoint[]>([]);
   const [notice, setNotice] = useState("Clique no mapa para caminhar. Dois cliques mudam de lugar na hora.");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -97,6 +108,10 @@ export function Walkthrough({ session, onExit }: WalkthroughProps): React.JSX.El
       if (clickTimer.current) clearTimeout(clickTimer.current);
     };
   }, [observer]);
+
+  useEffect(() => {
+    try { window.localStorage.setItem(SPEED_KEY, String(speed)); } catch { /* Preferência opcional. */ }
+  }, [speed]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
