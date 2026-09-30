@@ -132,6 +132,7 @@ export function findWalkPath(home: Home, start: PlanPoint, target: PlanPoint): P
   const columns = Math.ceil((bounds.maxX - bounds.minX) / step) + 3;
   const rows = Math.ceil((bounds.maxY - bounds.minY) / step) + 3;
   const total = columns * rows;
+  if (!Number.isSafeInteger(total) || total > 100_000) return null;
   const pointOf = (index: number): PlanPoint => ({ x: minX + (index % columns) * step, y: minY + Math.floor(index / columns) * step });
   const indexOf = (x: number, y: number): number => y * columns + x;
   const cellX = (x: number): number => Math.round((x - minX) / step);

@@ -64,4 +64,5 @@ test("segmento excessivo é recusado antes de percorrer milhões de amostras", (
   const home = new Home();
   home.addRoom(new Room([[0, 0], [1_000_000, 0], [1_000_000, 100], [0, 100]]));
   expect(segmentIsWalkable(home, { x: 1, y: 50 }, { x: 999_999, y: 50 })).toBe(false);
+  expect(findWalkPath(home, { x: 1, y: 50 }, { x: 999_999, y: 50 })).toBeNull();
 });
