@@ -5,6 +5,7 @@ const fsSync = require("node:fs");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { createLibrary } = require("./library.cjs");
+const { atomicWriteFile } = require("./file-exports.cjs");
 
 if (!app.isPackaged && process.env.CASAFEITA_TEST_USER_DATA) {
   const testProfile = path.resolve(process.env.CASAFEITA_TEST_USER_DATA);
@@ -100,7 +101,7 @@ app.whenReady().then(() => {
       filters: [{ name: "Projeto editável", extensions: ["sh3d"] }],
     });
     if (chosen.canceled || !chosen.filePath) return false;
-    await fs.writeFile(chosen.filePath, bytes);
+    await atomicWriteFile(chosen.filePath, bytes);
     return true;
   });
 
