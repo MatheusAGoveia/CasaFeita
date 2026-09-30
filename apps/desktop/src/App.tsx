@@ -190,11 +190,13 @@ export function App(): React.JSX.Element {
 
   const openFile = async (): Promise<void> => {
     if (saveInProgress.current) return;
-    if (sessionRef.current.home.isModified() && !window.confirm("Abrir outro projeto? Salve as alterações antes de continuar.")) return;
     if (window.casaDesktop) {
       try {
         const file = await window.casaDesktop.openFile();
-        if (file) await loadBytes(file.bytes);
+        if (file) {
+          if (sessionRef.current.home.isModified() && !window.confirm("Abrir outro projeto? Salve as alterações antes de continuar.")) return;
+          await loadBytes(file.bytes);
+        }
       } catch (error) {
         setNotice(`Não foi possível abrir o projeto: ${error instanceof Error ? error.message : String(error)}`);
       }
@@ -474,7 +476,7 @@ export function App(): React.JSX.Element {
         void saveManaged(id, name);
       }} onDelete={(id) => void deleteManaged(id)} onImport={() => void openFile()} onExport={() => void exportProject()} />}
       {notice && <div className="notice" role="status">{notice}</div>}
-      <input ref={fileInput} type="file" accept=".sh3d" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) void file.arrayBuffer().then((buffer) => loadBytes(new Uint8Array(buffer))); event.target.value = ""; }} />
+      <input ref={fileInput} type="file" accept=".sh3d" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file && (!sessionRef.current.home.isModified() || window.confirm("Abrir outro projeto? Salve as alterações antes de continuar."))) void file.arrayBuffer().then((buffer) => loadBytes(new Uint8Array(buffer))); event.target.value = ""; }} />
     </div>
   );
 }
