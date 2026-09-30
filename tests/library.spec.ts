@@ -77,3 +77,29 @@ test("falha ao substituir restaura os bytes antigos", async () => {
   expect(restored.bytes).toEqual(Uint8Array.from([1, 2, 3]));
   expect((await readdir(directory)).some((name) => name.endsWith(".bak") || name.endsWith(".tmp"))).toBe(false);
 });
+
+test("leitura espera substituição terminar", async () => {
+  const directory = path.resolve("test-results", "library-serialized-read");
+  const project = await libraryModule.createLibrary(directory).save(null, "Original", [1]);
+  const index = path.join(directory, "projects.json");
+  let release!: () => void;
+  let entered!: () => void;
+  const pause = new Promise<void>((resolve) => { release = resolve; });
+  const reachedIndex = new Promise<void>((resolve) => { entered = resolve; });
+  const io = {
+    ...fileSystem,
+    rename: async (from: string, to: string) => {
+      if (to === index) { entered(); await pause; }
+      return fileSystem.rename(from, to);
+    },
+  };
+  const library = libraryModule.createLibrary(directory, io);
+  const saving = library.save(project.id, "Atualizado", [2]);
+  await reachedIndex;
+  const reading = library.open(project.id);
+  release();
+  await saving;
+  const opened = await reading;
+  expect(opened.name).toBe("Atualizado");
+  expect(opened.bytes).toEqual(Uint8Array.from([2]));
+});

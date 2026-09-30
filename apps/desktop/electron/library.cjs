@@ -49,26 +49,30 @@ function createLibrary(directory, io = fs) {
   };
 
   return {
-    async list() {
-      const entries = await readEntries();
-      return entries.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    list() {
+      return runExclusive(async () => {
+        const entries = await readEntries();
+        return entries.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+      });
     },
-    async open(id) {
-      if (typeof id !== "string" || !ID_PATTERN.test(id)) throw new Error("Projeto inválido");
-      const entries = await readEntries();
-      const entry = entries.find((project) => project.id === id);
-      if (!entry) throw new Error("Projeto não encontrado");
-      const file = path.join(directory, `${id}.sh3d`);
-      try {
-        const stat = await io.stat(file);
-        if (stat.size > MAX_BYTES) throw new Error("Projeto maior que 200 MB");
-        const bytes = await io.readFile(file);
-        if (bytes.length > MAX_BYTES) throw new Error("Projeto maior que 200 MB");
-        return { ...entry, bytes: new Uint8Array(bytes) };
-      } catch (error) {
-        if (error.code === "ENOENT") throw new Error("Arquivo do projeto não encontrado");
-        throw error;
-      }
+    open(id) {
+      return runExclusive(async () => {
+        if (typeof id !== "string" || !ID_PATTERN.test(id)) throw new Error("Projeto inválido");
+        const entries = await readEntries();
+        const entry = entries.find((project) => project.id === id);
+        if (!entry) throw new Error("Projeto não encontrado");
+        const file = path.join(directory, `${id}.sh3d`);
+        try {
+          const stat = await io.stat(file);
+          if (stat.size > MAX_BYTES) throw new Error("Projeto maior que 200 MB");
+          const bytes = await io.readFile(file);
+          if (bytes.length > MAX_BYTES) throw new Error("Projeto maior que 200 MB");
+          return { ...entry, bytes: new Uint8Array(bytes) };
+        } catch (error) {
+          if (error.code === "ENOENT") throw new Error("Arquivo do projeto não encontrado");
+          throw error;
+        }
+      });
     },
     save(id, name, data) {
       return runExclusive(async () => {
