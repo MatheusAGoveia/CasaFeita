@@ -55,9 +55,16 @@ function createLibrary(directory) {
       const entry = entries.find((project) => project.id === id);
       if (!entry) throw new Error("Projeto não encontrado");
       const file = path.join(directory, `${id}.sh3d`);
-      const stat = await fs.stat(file);
-      if (stat.size > MAX_BYTES) throw new Error("Projeto maior que 200 MB");
-      return { ...entry, bytes: new Uint8Array(await fs.readFile(file)) };
+      try {
+        const stat = await fs.stat(file);
+        if (stat.size > MAX_BYTES) throw new Error("Projeto maior que 200 MB");
+        const bytes = await fs.readFile(file);
+        if (bytes.length > MAX_BYTES) throw new Error("Projeto maior que 200 MB");
+        return { ...entry, bytes: new Uint8Array(bytes) };
+      } catch (error) {
+        if (error.code === "ENOENT") throw new Error("Arquivo do projeto não encontrado");
+        throw error;
+      }
     },
     save(id, name, data) {
       return runExclusive(async () => {

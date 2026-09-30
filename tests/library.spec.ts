@@ -1,7 +1,7 @@
 // Copyright (c) 2026 CasaFeita contributors. GPL-2.0-or-later.
 import { expect, test } from "@playwright/test";
 import path from "node:path";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import libraryModule from "../apps/desktop/electron/library.cjs";
 
 test("biblioteca local mantém três projetos e permite substituir ou excluir", async () => {
@@ -21,6 +21,14 @@ test("biblioteca local mantém três projetos e permite substituir ou excluir", 
   await library.save(null, "Novo espaço", bytes);
   expect(await library.list()).toHaveLength(3);
   expect(await libraryModule.createLibrary(path.resolve("test-results", "library-store")).list()).toHaveLength(3);
+});
+
+test("biblioteca explica quando o arquivo de um projeto sumiu", async () => {
+  const directory = path.resolve("test-results", "library-missing-file");
+  const library = libraryModule.createLibrary(directory);
+  const project = await library.save(null, "Casa", [1]);
+  await rm(path.join(directory, `${project.id}.sh3d`));
+  await expect(library.open(project.id)).rejects.toThrow("Arquivo do projeto não encontrado");
 });
 
 test("biblioteca informa índice corrompido ou versão desconhecida", async () => {
