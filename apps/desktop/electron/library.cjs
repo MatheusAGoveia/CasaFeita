@@ -18,8 +18,10 @@ function createLibrary(directory) {
       if (error.code === "ENOENT") return [];
       throw error;
     }
-    const manifest = JSON.parse(raw);
-    if (!manifest || !Array.isArray(manifest.projects) || manifest.projects.length > MAX_PROJECTS ||
+    let manifest;
+    try { manifest = JSON.parse(raw); }
+    catch { throw new Error("Biblioteca de projetos corrompida"); }
+    if (!manifest || manifest.version !== 1 || !Array.isArray(manifest.projects) || manifest.projects.length > MAX_PROJECTS ||
         !manifest.projects.every((project) => project && typeof project.id === "string" && ID_PATTERN.test(project.id) &&
           typeof project.name === "string" && typeof project.updatedAt === "string") ||
         new Set(manifest.projects.map((project) => project.id)).size !== manifest.projects.length) {

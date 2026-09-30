@@ -1,6 +1,7 @@
 // Copyright (c) 2026 CasaFeita contributors. GPL-2.0-or-later.
 import { expect, test } from "@playwright/test";
 import path from "node:path";
+import { mkdir, writeFile } from "node:fs/promises";
 import libraryModule from "../apps/desktop/electron/library.cjs";
 
 test("biblioteca local mantém três projetos e permite substituir ou excluir", async () => {
@@ -20,4 +21,15 @@ test("biblioteca local mantém três projetos e permite substituir ou excluir", 
   await library.save(null, "Novo espaço", bytes);
   expect(await library.list()).toHaveLength(3);
   expect(await libraryModule.createLibrary(path.resolve("test-results", "library-store")).list()).toHaveLength(3);
+});
+
+test("biblioteca informa índice corrompido ou versão desconhecida", async () => {
+  const directory = path.resolve("test-results", "library-corrupt");
+  await mkdir(directory, { recursive: true });
+  const file = path.join(directory, "projects.json");
+  const library = libraryModule.createLibrary(directory);
+  await writeFile(file, "{");
+  await expect(library.list()).rejects.toThrow("Biblioteca de projetos corrompida");
+  await writeFile(file, JSON.stringify({ version: 9, projects: [] }));
+  await expect(library.list()).rejects.toThrow("Biblioteca de projetos corrompida");
 });
