@@ -126,7 +126,7 @@ export function App(): React.JSX.Element {
       if (walkthrough) return;
       if (libraryMode || dialog) {
         if (event.key === "Escape") {
-          setLibraryMode(null);
+          if (!libraryBusy) setLibraryMode(null);
           setDialog(null);
         }
         return;

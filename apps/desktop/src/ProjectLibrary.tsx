@@ -20,9 +20,9 @@ export function ProjectLibrary(props: ProjectLibraryProps): React.JSX.Element {
   const [name, setName] = useState(props.currentName);
   const saving = props.mode === "save";
 
-  return <div className="dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) props.onClose(); }}>
+  return <div className="dialog-backdrop" onMouseDown={(event) => { if (!props.busy && event.target === event.currentTarget) props.onClose(); }}>
     <section className="library-dialog" role="dialog" aria-modal="true" aria-label={saving ? "Salvar projeto" : "Meus projetos"}>
-      <div className="library-heading"><div><span className="section-eyebrow">CASAFEITA</span><h2>{saving ? "Salvar projeto" : "Meus projetos"}</h2><p>Até três projetos no aplicativo, guardados neste perfil do Windows.</p></div><button className="library-close" aria-label="Fechar" onClick={props.onClose}><X size={18} /></button></div>
+      <div className="library-heading"><div><span className="section-eyebrow">CASAFEITA</span><h2>{saving ? "Salvar projeto" : "Meus projetos"}</h2><p>Até três projetos no aplicativo, guardados neste perfil do Windows.</p></div><button className="library-close" aria-label="Fechar" disabled={props.busy} onClick={props.onClose}><X size={18} /></button></div>
       {saving && <div className="library-save-form"><label htmlFor="project-name">Nome do projeto</label><div><input id="project-name" aria-label="Nome do projeto" maxLength={80} value={name} onChange={(event) => setName(event.target.value)} /><button disabled={props.busy || props.projects.length >= 3 || !name.trim()} onClick={() => props.onSave(null, name)}><Plus size={15} /> Salvar novo</button></div>{props.projects.length >= 3 && <p>Os três espaços estão ocupados. Escolha um para substituir ou exclua um projeto.</p>}</div>}
       <div className="library-list-heading"><strong>Biblioteca</strong><small>{props.projects.length}/3</small></div>
       <div className="library-projects">
