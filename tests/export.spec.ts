@@ -16,3 +16,9 @@ test("exportação conserva arquivo anterior quando substituição falha", async
   await exportModule.atomicWriteFile(target, Uint8Array.from([5, 6]));
   expect(await fileSystem.readFile(target)).toEqual(Buffer.from([5, 6]));
 });
+
+test("exportação recusa bytes vazios e saneia nome sugerido", () => {
+  expect(() => exportModule.prepareExport("Casa.sh3d", new Uint8Array())).toThrow("Projeto inválido");
+  expect(exportModule.prepareExport("../Casa:?*.sh3d", Uint8Array.from([1])).defaultName).toBe("Casa.sh3d");
+  expect(exportModule.prepareExport(".sh3d", Uint8Array.from([1])).defaultName).toBe("CasaFeita.sh3d");
+});

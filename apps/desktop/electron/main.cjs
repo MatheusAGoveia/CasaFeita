@@ -5,7 +5,7 @@ const fsSync = require("node:fs");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { createLibrary } = require("./library.cjs");
-const { atomicWriteFile } = require("./file-exports.cjs");
+const { atomicWriteFile, prepareExport } = require("./file-exports.cjs");
 
 if (!app.isPackaged && process.env.CASAFEITA_TEST_USER_DATA) {
   const testProfile = path.resolve(process.env.CASAFEITA_TEST_USER_DATA);
@@ -89,12 +89,7 @@ app.whenReady().then(() => {
 
   ipcMain.handle("project:save", async (event, suggestedName, data) => {
     assertMainWindow(event);
-    if (typeof suggestedName !== "string" || !(data instanceof Uint8Array) || data.length > 200 * 1024 * 1024) {
-      throw new Error("Projeto inválido");
-    }
-    const bytes = Uint8Array.from(data);
-    const defaultName = (path.basename(suggestedName).replace(/[^\p{L}\p{N} _.-]/gu, "") || "CasaFeita")
-      .replace(/\.sh3d$/i, "") + ".sh3d";
+    const { defaultName, bytes } = prepareExport(suggestedName, data);
     const chosen = await dialog.showSaveDialog(mainWindow, {
       title: "Salvar projeto",
       defaultPath: defaultName,
