@@ -59,7 +59,10 @@ export function isWalkable(home: Home, point: PlanPoint, radius = WALKER_RADIUS)
 
 export function segmentIsWalkable(home: Home, from: PlanPoint, to: PlanPoint): boolean {
   if (![from.x, from.y, to.x, to.y].every(Number.isFinite)) return false;
-  const steps = Math.max(1, Math.ceil(Math.hypot(to.x - from.x, to.y - from.y) / 9));
+  if (!isWalkable(home, from) || !isWalkable(home, to)) return false;
+  const distance = Math.hypot(to.x - from.x, to.y - from.y);
+  if (!Number.isFinite(distance) || distance > 100_000) return false;
+  const steps = Math.max(1, Math.ceil(distance / 9));
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     if (!isWalkable(home, { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t })) return false;
