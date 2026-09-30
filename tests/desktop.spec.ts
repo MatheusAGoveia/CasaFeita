@@ -82,8 +82,13 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
     expect(await isModified()).toBe(true);
     await page.getByRole("button", { name: "Salvar", exact: true }).click();
     await expect(page.getByText("Projeto salvo na biblioteca local")).toBeVisible();
-    expect(await isModified()).toBe(false);
+    await expect.poll(isModified).toBe(false);
     await page.getByRole("button", { name: "Verde" }).click();
+    expect(await isModified()).toBe(true);
+    await page.getByRole("button", { name: "Salvar", exact: true }).click();
+    await expect(page.getByText("Projeto salvo na biblioteca local")).toBeVisible();
+    await expect.poll(isModified).toBe(false);
+    await page.getByRole("button", { name: "Girar 45°" }).click();
     expect(await isModified()).toBe(true);
     await page.getByRole("button", { name: "Novo projeto" }).click();
     expect(confirmations).toContain("Criar outro projeto? Salve as alterações antes de continuar.");
