@@ -121,8 +121,22 @@ function createLibrary(directory, io = fs) {
         if (typeof id !== "string" || !ID_PATTERN.test(id)) throw new Error("Projeto inválido");
         const entries = await readEntries();
         if (!entries.some((project) => project.id === id)) return false;
-        await writeEntries(entries.filter((project) => project.id !== id));
-        await io.rm(path.join(directory, `${id}.sh3d`), { force: true });
+        const target = path.join(directory, `${id}.sh3d`);
+        const backup = path.join(directory, `${randomUUID()}.bak`);
+        let moved = false;
+        try {
+          try {
+            await io.rename(target, backup);
+            moved = true;
+          } catch (error) {
+            if (error.code !== "ENOENT") throw error;
+          }
+          await writeEntries(entries.filter((project) => project.id !== id));
+        } catch (error) {
+          if (moved) await io.rename(backup, target);
+          throw error;
+        }
+        if (moved) await io.rm(backup, { force: true }).catch(() => {});
         return true;
       });
     },

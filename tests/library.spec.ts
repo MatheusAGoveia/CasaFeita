@@ -103,3 +103,18 @@ test("leitura espera substituição terminar", async () => {
   expect(opened.name).toBe("Atualizado");
   expect(opened.bytes).toEqual(Uint8Array.from([2]));
 });
+
+test("falha ao excluir não perde o projeto", async () => {
+  const directory = path.resolve("test-results", "library-delete-rollback");
+  const project = await libraryModule.createLibrary(directory).save(null, "Casa", [3, 4]);
+  const index = path.join(directory, "projects.json");
+  const io = {
+    ...fileSystem,
+    rename: async (from: string, to: string) => {
+      if (to === index) throw new Error("falha simulada no índice");
+      return fileSystem.rename(from, to);
+    },
+  };
+  await expect(libraryModule.createLibrary(directory, io).delete(project.id)).rejects.toThrow("falha simulada");
+  expect((await libraryModule.createLibrary(directory).open(project.id)).bytes).toEqual(Uint8Array.from([3, 4]));
+});
