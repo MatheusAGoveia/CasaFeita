@@ -53,6 +53,7 @@ export function App(): React.JSX.Element {
   const [mode, setMode] = useState(session.controller.getPlanController().getMode().toString());
   const [selected, setSelected] = useState(() => session.home.getSelectedItems());
   const [counts, setCounts] = useState(() => ({ rooms: session.home.getRooms().length, walls: session.home.getWalls().length, furniture: session.home.getFurniture().length }));
+  const [isModified, setIsModified] = useState(session.home.isModified());
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [threeExpanded, setThreeExpanded] = useState(false);
@@ -94,10 +95,12 @@ export function App(): React.JSX.Element {
       },
     };
     const collectionListener = { collectionChanged: syncCounts };
+    const modifiedListener = { propertyChange: (): void => setIsModified(home.isModified()) };
     home.addWallsListener(collectionListener);
     home.addRoomsListener(collectionListener);
     home.addFurnitureListener(collectionListener);
     home.addSelectionListener(syncSelection);
+    home.addPropertyChangeListener(Home.Property.MODIFIED, modifiedListener);
     controller.addUndoStateListener(syncUndo);
     plan.addPropertyChangeListener(PlanController.Property.MODE, modeListener);
     plan.setModifyItemCallback(() => {
@@ -111,6 +114,7 @@ export function App(): React.JSX.Element {
     });
     syncCounts();
     syncSelection();
+    setIsModified(home.isModified());
     syncUndo();
     setMode(plan.getMode().toString());
     return () => {
@@ -118,6 +122,7 @@ export function App(): React.JSX.Element {
       home.removeRoomsListener(collectionListener);
       home.removeFurnitureListener(collectionListener);
       home.removeSelectionListener(syncSelection);
+      home.removePropertyChangeListener(Home.Property.MODIFIED, modifiedListener);
       controller.removeUndoStateListener(syncUndo);
       plan.removePropertyChangeListener(PlanController.Property.MODE, modeListener);
     };
@@ -397,7 +402,7 @@ export function App(): React.JSX.Element {
           <span className="brand-mark"><House size={19} strokeWidth={2.2} /></span>
           <div className="brand-text"><strong>CasaFeita</strong><span>Seu espaço, do seu jeito</span></div>
           <span className="brand-divider" />
-          <div className="project-identity"><span>PROJETO ATUAL</span><strong>{session.home.getName() || "Sem título"}</strong></div>
+          <div className="project-identity"><span>PROJETO ATUAL</span><div className="project-name-line"><strong>{session.home.getName() || "Sem título"}</strong>{isModified && <i className="unsaved-dot" data-testid="unsaved-indicator" aria-label="Alterações não salvas" title="Alterações não salvas" />}</div></div>
         </div>
 
         <div className="mode-wrap">

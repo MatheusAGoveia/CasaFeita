@@ -83,9 +83,11 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
     );
     await page.getByRole("spinbutton", { name: "Largura" }).fill("230");
     expect(await isModified()).toBe(true);
+    await expect(page.getByTestId("unsaved-indicator")).toBeVisible();
     await page.getByRole("button", { name: "Salvar", exact: true }).click();
     await expect(page.getByText("Projeto salvo na biblioteca local")).toBeVisible();
     await expect.poll(isModified).toBe(false);
+    await expect(page.getByTestId("unsaved-indicator")).toBeHidden();
     await page.getByRole("button", { name: "Verde" }).click();
     expect(await isModified()).toBe(true);
     await page.getByRole("button", { name: "Salvar", exact: true }).click();

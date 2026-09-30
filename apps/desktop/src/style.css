@@ -26,6 +26,8 @@ button:disabled { cursor: default; }
 .project-identity { flex-direction: column; align-items: flex-start; min-width: 0; gap: 4px; }
 .project-identity span, .section-eyebrow, .rail-kicker { color: #91a09a; font-size: 10px; font-weight: 700; letter-spacing: 1.15px; }
 .project-identity strong { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 650; }
+.project-name-line { display: flex; align-items: center; gap: 7px; }
+.unsaved-dot { display: inline-block; flex: 0 0 7px; width: 7px; height: 7px; border-radius: 50%; background: #d59a55; }
 .mode-wrap { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
 .mode-pill { display: flex; align-items: center; padding: 5px; border: 1px solid #dfe8df; border-radius: 100px; background: #f3f7f2; box-shadow: 0 7px 20px #1c4b3712; transition: box-shadow .22s ease, background .22s ease; white-space: nowrap; }
 .mode-pill.open { background: #f7f9f5; box-shadow: 0 9px 28px #1c4b371b; }
