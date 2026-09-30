@@ -67,6 +67,7 @@ export function App(): React.JSX.Element {
   const [libraryProjects, setLibraryProjects] = useState<ManagedProject[]>([]);
   const [libraryId, setLibraryId] = useState<string | null>(null);
   const [libraryBusy, setLibraryBusy] = useState(false);
+  const saveInProgress = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const sessionRef = useRef(session);
   sessionRef.current = session;
@@ -213,7 +214,8 @@ export function App(): React.JSX.Element {
   };
 
   const saveManaged = async (targetId: string | null, name: string): Promise<void> => {
-    if (!window.casaDesktop) return;
+    if (!window.casaDesktop || saveInProgress.current) return;
+    saveInProgress.current = true;
     const home = sessionRef.current.home;
     const previousName = home.getName();
     setLibraryBusy(true);
@@ -231,10 +233,12 @@ export function App(): React.JSX.Element {
       setNotice(`Não foi possível salvar: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLibraryBusy(false);
+      saveInProgress.current = false;
     }
   };
 
   const saveProject = async (): Promise<void> => {
+    if (saveInProgress.current) return;
     if (libraryId) await saveManaged(libraryId, sessionRef.current.home.getName() || "Projeto sem título");
     else await showLibrary("save");
   };
@@ -408,7 +412,7 @@ export function App(): React.JSX.Element {
         <div className="header-actions">
           <button className="header-icon" title="Novo projeto" aria-label="Novo projeto" onClick={newProject}><Plus size={19} /></button>
           <button className="header-icon" title="Meus projetos" aria-label="Meus projetos" onClick={() => void showLibrary("browse")}><FolderOpen size={19} /></button>
-          <button className="save-button" onClick={() => void saveProject()}><Save size={17} /><span>Salvar</span></button>
+          <button className="save-button" disabled={libraryBusy} onClick={() => void saveProject()}><Save size={17} /><span>Salvar</span></button>
         </div>
       </header>
 
