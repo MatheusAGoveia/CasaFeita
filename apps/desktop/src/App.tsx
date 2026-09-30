@@ -49,6 +49,7 @@ const tools = [
 
 export function App(): React.JSX.Element {
   const [session, setSession] = useState<Session>(() => createSession(createStarterHome()));
+  const [sessionEpoch, setSessionEpoch] = useState(0);
   const [mode, setMode] = useState(session.controller.getPlanController().getMode().toString());
   const [selected, setSelected] = useState(() => session.home.getSelectedItems());
   const [counts, setCounts] = useState(() => ({ rooms: session.home.getRooms().length, walls: session.home.getWalls().length, furniture: session.home.getFurniture().length }));
@@ -163,6 +164,7 @@ export function App(): React.JSX.Element {
     setLibraryMode(null);
     setLibraryId(projectId);
     setSession(createSession(home));
+    setSessionEpoch((epoch) => epoch + 1);
   };
 
   const newProject = (): void => {
@@ -434,7 +436,7 @@ export function App(): React.JSX.Element {
         <section className="plan-panel" aria-label="Planta editável">
           <div className="canvas-heading"><span className="section-eyebrow">EDITOR DE PLANTA</span><strong>Desenhe sua casa</strong><span>Arraste para ajustar · Clique duas vezes para concluir</span></div>
           <div className="plan-canvas" data-testid="plan-surface">
-            <PlanCanvas key={session.home.getName() ?? "novo"} home={session.home} preferences={session.preferences} controller={session.controller.getPlanController()} />
+            <PlanCanvas key={sessionEpoch} home={session.home} preferences={session.preferences} controller={session.controller.getPlanController()} />
             {counts.walls === 0 && <div className="empty-tip"><span className="empty-icon"><DraftingCompass size={24} /></span><strong>Comece pela planta</strong><p>Desenhe as paredes para ver seu espaço ganhar forma.</p><button onClick={() => session.controller.getPlanController().setMode(PlanController.Mode.WALL_CREATION)}>Desenhar paredes <ArrowUpRight size={16} /></button></div>}
           </div>
           <div className="canvas-footer"><span className="grid-dot" />Escala em centímetros <span className="footer-sep">·</span> {counts.walls} paredes <span className="footer-sep">·</span> {counts.rooms} cômodos <span className="footer-sep">·</span> {counts.furniture} {counts.furniture === 1 ? "móvel" : "móveis"} <span className="footer-push" /> Ferramenta: {tools.find((item) => item.mode.toString() === mode)?.label ?? "Selecionar"}</div>

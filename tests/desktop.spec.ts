@@ -55,8 +55,11 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
     await page.getByRole("button", { name: "Salvar", exact: true }).click();
     const library = page.getByRole("dialog", { name: "Salvar projeto" });
     await expect(library).toBeVisible();
+    const canvasBeforeRename = await page.getByTestId("plan-surface").locator("canvas").elementHandle();
+    await library.getByRole("textbox", { name: "Nome do projeto" }).fill("Casa renomeada");
     await library.getByRole("button", { name: "Salvar novo" }).click();
     await expect(page.getByText("Projeto salvo na biblioteca local")).toBeVisible();
+    expect(await canvasBeforeRename?.evaluate((element) => element.isConnected)).toBe(true);
     await page.getByRole("button", { name: "Meus projetos" }).click();
     await expect(page.getByRole("dialog", { name: "Meus projetos" }).getByText("1/3")).toBeVisible();
     await expect(page.getByRole("status")).toBeHidden();
