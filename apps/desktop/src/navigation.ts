@@ -32,6 +32,7 @@ function distanceToSegment(point: PlanPoint, a: PlanPoint, b: PlanPoint): number
 }
 
 export function isWalkable(home: Home, point: PlanPoint, radius = WALKER_RADIUS): boolean {
+  if (!Number.isFinite(point.x) || !Number.isFinite(point.y) || !Number.isFinite(radius) || radius < 0) return false;
   const bounds = planBounds(home);
   if (!bounds || point.x < bounds.minX || point.x > bounds.maxX || point.y < bounds.minY || point.y > bounds.maxY) return false;
   for (const wall of home.getWalls()) {
@@ -54,6 +55,7 @@ export function isWalkable(home: Home, point: PlanPoint, radius = WALKER_RADIUS)
 }
 
 export function segmentIsWalkable(home: Home, from: PlanPoint, to: PlanPoint): boolean {
+  if (![from.x, from.y, to.x, to.y].every(Number.isFinite)) return false;
   const steps = Math.max(1, Math.ceil(Math.hypot(to.x - from.x, to.y - from.y) / 9));
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;

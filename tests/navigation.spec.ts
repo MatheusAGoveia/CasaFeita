@@ -42,3 +42,11 @@ test("desvia de móveis e recusa destino sobre um obstáculo", () => {
     expect(segmentIsWalkable(home, route![index - 1]!, route![index]!)).toBe(true);
   }
 });
+
+test("coordenadas inválidas nunca são caminháveis", () => {
+  const home = homeWithDoorway();
+  expect(isWalkable(home, { x: NaN, y: 100 })).toBe(false);
+  expect(isWalkable(home, { x: 100, y: 100 }, -1)).toBe(false);
+  expect(segmentIsWalkable(home, { x: 100, y: 100 }, { x: Infinity, y: 100 })).toBe(false);
+  expect(findWalkPath(home, { x: 100, y: 100 }, { x: NaN, y: 100 })).toBeNull();
+});
