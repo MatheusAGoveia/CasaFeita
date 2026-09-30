@@ -75,7 +75,16 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
     expect(savedHome.home.getFurniture()[0]?.getX()).not.toBe(savedHome.home.getFurniture()[1]?.getX());
     await page.getByRole("button", { name: "Fechar" }).click();
 
+    const isModified = () => page.evaluate(() =>
+      (globalThis as unknown as { __homeScene?: { item?: { isModified(): boolean } } }).__homeScene?.item?.isModified() ?? null,
+    );
     await page.getByRole("spinbutton", { name: "Largura" }).fill("230");
+    expect(await isModified()).toBe(true);
+    await page.getByRole("button", { name: "Salvar", exact: true }).click();
+    await expect(page.getByText("Projeto salvo na biblioteca local")).toBeVisible();
+    expect(await isModified()).toBe(false);
+    await page.getByRole("button", { name: "Verde" }).click();
+    expect(await isModified()).toBe(true);
     await page.getByRole("button", { name: "Novo projeto" }).click();
     expect(confirmations).toContain("Criar outro projeto? Salve as alterações antes de continuar.");
     await expect(page.getByText("0 paredes")).toBeVisible();

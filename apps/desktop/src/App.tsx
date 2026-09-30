@@ -374,7 +374,7 @@ export function App(): React.JSX.Element {
         <label key={dimension}>{label}<input type="number" min="10" max="1500" step="1" aria-label={label} value={Math.round(value)} onChange={(event) => setFurnitureSize(selectedFurniture, dimension, event.target.value)} /></label>,
       )}
     </div>
-    {canChangeFurnitureFinish(selectedFurniture) && <div className="furniture-finishes"><span>Acabamento</span><div>{furnitureFinishes.map((finish) => <button key={finish.id} title={finish.name} aria-label={finish.name} aria-pressed={getFurnitureFinish(selectedFurniture) === finish.id} onClick={() => { setFurnitureFinish(selectedFurniture, finish.id); setFurnitureRevision((revision) => revision + 1); }}><i style={{ backgroundColor: finish.swatch }} /></button>)}</div></div>}
+    {canChangeFurnitureFinish(selectedFurniture) && <div className="furniture-finishes"><span>Acabamento</span><div>{furnitureFinishes.map((finish) => <button key={finish.id} title={finish.name} aria-label={finish.name} aria-pressed={getFurnitureFinish(selectedFurniture) === finish.id} onClick={() => { setFurnitureFinish(selectedFurniture, finish.id); session.home.setModified(true); setFurnitureRevision((revision) => revision + 1); }}><i style={{ backgroundColor: finish.swatch }} /></button>)}</div></div>}
     <div className="furniture-actions"><button onClick={() => { selectedFurniture.setAngle(selectedFurniture.getAngle() + Math.PI / 4); setFurnitureRevision((revision) => revision + 1); }}>Girar 45°</button><button onClick={() => duplicateFurniture(selectedFurniture)}>Duplicar</button><button onClick={() => session.controller.getFurnitureController().deleteSelection()}>Excluir</button></div>
   </div>;
 
