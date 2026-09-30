@@ -84,9 +84,31 @@ function createLibrary(directory, io = fs) {
         const entry = { id: projectId, name: name.trim(), updatedAt: new Date().toISOString() };
         await io.mkdir(directory, { recursive: true });
         const temporary = path.join(directory, `${randomUUID()}.tmp`);
-        await io.writeFile(temporary, Uint8Array.from(data));
-        await io.rename(temporary, path.join(directory, `${projectId}.sh3d`));
-        await writeEntries([...entries.filter((project) => project.id !== projectId), entry]);
+        const target = path.join(directory, `${projectId}.sh3d`);
+        const backup = path.join(directory, `${randomUUID()}.bak`);
+        let movedOld = false;
+        let installed = false;
+        try {
+          await io.writeFile(temporary, Uint8Array.from(data));
+          if (existing) {
+            await io.rename(target, backup);
+            movedOld = true;
+          }
+          await io.rename(temporary, target);
+          installed = true;
+          await writeEntries([...entries.filter((project) => project.id !== projectId), entry]);
+        } catch (error) {
+          try {
+            if (installed) await io.rm(target, { force: true });
+            if (movedOld) await io.rename(backup, target);
+          } catch (recoveryError) {
+            throw new AggregateError([error, recoveryError], "Falha ao recuperar o projeto anterior");
+          }
+          throw error;
+        } finally {
+          await io.rm(temporary, { force: true }).catch(() => {});
+        }
+        if (movedOld) await io.rm(backup, { force: true }).catch(() => {});
         return entry;
       });
     },

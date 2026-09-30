@@ -57,4 +57,23 @@ test("falha ao atualizar índice remove arquivo temporário", async () => {
   };
   await expect(libraryModule.createLibrary(directory, io).save(null, "Sala", [1])).rejects.toThrow("falha simulada");
   expect((await readdir(directory)).some((name) => name.endsWith(".tmp"))).toBe(false);
+  expect((await readdir(directory)).some((name) => name.endsWith(".sh3d"))).toBe(false);
+});
+
+test("falha ao substituir restaura os bytes antigos", async () => {
+  const directory = path.resolve("test-results", "library-rollback");
+  const project = await libraryModule.createLibrary(directory).save(null, "Sala", [1, 2, 3]);
+  const index = path.join(directory, "projects.json");
+  const io = {
+    ...fileSystem,
+    rename: async (from: string, to: string) => {
+      if (to === index) throw new Error("falha simulada no índice");
+      return fileSystem.rename(from, to);
+    },
+  };
+  await expect(libraryModule.createLibrary(directory, io).save(project.id, "Sala nova", [4, 5])).rejects.toThrow("falha simulada");
+  const restored = await libraryModule.createLibrary(directory).open(project.id);
+  expect(restored.name).toBe("Sala");
+  expect(restored.bytes).toEqual(Uint8Array.from([1, 2, 3]));
+  expect((await readdir(directory)).some((name) => name.endsWith(".bak") || name.endsWith(".tmp"))).toBe(false);
 });
