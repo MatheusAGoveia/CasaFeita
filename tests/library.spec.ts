@@ -2,7 +2,7 @@
 import { expect, test } from "@playwright/test";
 import path from "node:path";
 import * as fileSystem from "node:fs/promises";
-import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readdir, rename, rm, writeFile } from "node:fs/promises";
 import libraryModule from "../apps/desktop/electron/library.cjs";
 
 test("biblioteca local mantém três projetos e permite substituir ou excluir", async () => {
@@ -118,4 +118,38 @@ test("falha ao excluir não perde o projeto", async () => {
   };
   await expect(libraryModule.createLibrary(directory, io).delete(project.id)).rejects.toThrow("falha simulada");
   expect((await libraryModule.createLibrary(directory).open(project.id)).bytes).toEqual(Uint8Array.from([3, 4]));
+});
+
+test("reinício recupera cópia anterior após interrupção de substituição", async () => {
+  const directory = path.resolve("test-results", "library-crash-recovery");
+  const library = libraryModule.createLibrary(directory);
+  const project = await library.save(null, "Casa", [1, 2]);
+  const target = path.join(directory, `${project.id}.sh3d`);
+  const backup = path.join(directory, `${project.id}.${Date.parse(project.updatedAt)}.11111111-1111-1111-1111-111111111111.bak`);
+  await rename(target, backup);
+  await writeFile(target, Uint8Array.from([9, 9]));
+  expect((await libraryModule.createLibrary(directory).open(project.id)).bytes).toEqual(Uint8Array.from([1, 2]));
+  expect((await readdir(directory)).some((name) => name.endsWith(".bak"))).toBe(false);
+});
+
+test("reinício descarta cópia antiga após índice atualizado", async () => {
+  const directory = path.resolve("test-results", "library-committed-backup");
+  const library = libraryModule.createLibrary(directory);
+  const original = await library.save(null, "Casa", [1]);
+  await library.save(original.id, "Casa atual", [2]);
+  const backup = path.join(directory, `${original.id}.${Date.parse(original.updatedAt)}.11111111-1111-1111-1111-111111111111.bak`);
+  await writeFile(backup, Uint8Array.from([1]));
+  expect((await libraryModule.createLibrary(directory).open(original.id)).bytes).toEqual(Uint8Array.from([2]));
+  expect((await readdir(directory)).some((name) => name.endsWith(".bak"))).toBe(false);
+});
+
+test("reinício conclui exclusão já registrada no índice", async () => {
+  const directory = path.resolve("test-results", "library-deleted-backup");
+  const library = libraryModule.createLibrary(directory);
+  const project = await library.save(null, "Casa", [1]);
+  await library.delete(project.id);
+  const backup = path.join(directory, `${project.id}.${Date.parse(project.updatedAt)}.11111111-1111-1111-1111-111111111111.bak`);
+  await writeFile(backup, Uint8Array.from([1]));
+  expect(await libraryModule.createLibrary(directory).list()).toEqual([]);
+  expect((await readdir(directory)).some((name) => name.endsWith(".bak"))).toBe(false);
 });

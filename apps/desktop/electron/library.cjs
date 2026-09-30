@@ -11,6 +11,28 @@ function createLibrary(directory, io = fs) {
   const manifestPath = path.join(directory, "projects.json");
   let queue = Promise.resolve();
 
+  const backupPath = (entry) => path.join(directory, `${entry.id}.${Date.parse(entry.updatedAt)}.${randomUUID()}.bak`);
+
+  const recoverBackups = async (entries) => {
+    for (const name of await io.readdir(directory)) {
+      const match = name.match(/^([0-9a-f-]{36})\.([0-9]+)\.[0-9a-f-]{36}\.bak$/i);
+      if (!match || !ID_PATTERN.test(match[1])) continue;
+      const backup = path.join(directory, name);
+      const target = path.join(directory, `${match[1]}.sh3d`);
+      const entry = entries.find((project) => project.id === match[1]);
+      const targetExists = await io.stat(target).then(() => true, (error) => {
+        if (error.code === "ENOENT") return false;
+        throw error;
+      });
+      if (entry && (Date.parse(entry.updatedAt) === Number(match[2]) || !targetExists)) {
+        if (targetExists) await io.rm(target);
+        await io.rename(backup, target);
+      } else {
+        await io.rm(backup, { force: true });
+      }
+    }
+  };
+
   const readEntries = async () => {
     let raw;
     try { raw = await io.readFile(manifestPath, "utf8"); }
@@ -28,6 +50,7 @@ function createLibrary(directory, io = fs) {
         new Set(manifest.projects.map((project) => project.id)).size !== manifest.projects.length) {
       throw new Error("Biblioteca de projetos corrompida");
     }
+    await recoverBackups(manifest.projects);
     return manifest.projects;
   };
 
@@ -85,11 +108,12 @@ function createLibrary(directory, io = fs) {
         if (id !== null && !existing) throw new Error("Projeto não encontrado");
         if (!existing && entries.length >= MAX_PROJECTS) throw new Error("Limite de 3 projetos atingido. Exclua um projeto ou escolha qual substituir.");
         const projectId = existing?.id ?? randomUUID();
-        const entry = { id: projectId, name: name.trim(), updatedAt: new Date().toISOString() };
+        const updatedAt = new Date(Math.max(Date.now(), existing ? Date.parse(existing.updatedAt) + 1 : 0)).toISOString();
+        const entry = { id: projectId, name: name.trim(), updatedAt };
         await io.mkdir(directory, { recursive: true });
         const temporary = path.join(directory, `${randomUUID()}.tmp`);
         const target = path.join(directory, `${projectId}.sh3d`);
-        const backup = path.join(directory, `${randomUUID()}.bak`);
+        const backup = existing ? backupPath(existing) : null;
         let movedOld = false;
         let installed = false;
         try {
@@ -120,9 +144,10 @@ function createLibrary(directory, io = fs) {
       return runExclusive(async () => {
         if (typeof id !== "string" || !ID_PATTERN.test(id)) throw new Error("Projeto inválido");
         const entries = await readEntries();
-        if (!entries.some((project) => project.id === id)) return false;
+        const entry = entries.find((project) => project.id === id);
+        if (!entry) return false;
         const target = path.join(directory, `${id}.sh3d`);
-        const backup = path.join(directory, `${randomUUID()}.bak`);
+        const backup = backupPath(entry);
         let moved = false;
         try {
           try {
