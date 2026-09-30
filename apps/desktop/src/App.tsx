@@ -166,6 +166,7 @@ export function App(): React.JSX.Element {
   };
 
   const newProject = (): void => {
+    if (saveInProgress.current) return;
     if (session.home.isModified() && !window.confirm("Criar outro projeto? Salve as alterações antes de continuar.")) return;
     const home = new Home();
     home.setName("Novo projeto");
@@ -186,6 +187,7 @@ export function App(): React.JSX.Element {
   };
 
   const openFile = async (): Promise<void> => {
+    if (saveInProgress.current) return;
     if (sessionRef.current.home.isModified() && !window.confirm("Abrir outro projeto? Salve as alterações antes de continuar.")) return;
     if (window.casaDesktop) {
       try {
@@ -200,6 +202,7 @@ export function App(): React.JSX.Element {
   };
 
   const showLibrary = async (mode: "browse" | "save"): Promise<void> => {
+    if (saveInProgress.current) return;
     if (!window.casaDesktop) {
       if (mode === "browse") fileInput.current?.click();
       else void exportProject();
@@ -265,7 +268,7 @@ export function App(): React.JSX.Element {
   };
 
   const openManaged = async (id: string): Promise<void> => {
-    if (!window.casaDesktop) return;
+    if (!window.casaDesktop || saveInProgress.current) return;
     if (sessionRef.current.home.isModified() && !window.confirm("Abrir outro projeto? Salve as alterações antes de continuar.")) return;
     setLibraryBusy(true);
     try {
@@ -279,7 +282,7 @@ export function App(): React.JSX.Element {
   };
 
   const deleteManaged = async (id: string): Promise<void> => {
-    if (!window.casaDesktop) return;
+    if (!window.casaDesktop || saveInProgress.current) return;
     if (!window.confirm("Excluir este projeto da biblioteca local? Exporte uma cópia antes, se desejar guardá-lo.")) return;
     setLibraryBusy(true);
     try {
@@ -410,8 +413,8 @@ export function App(): React.JSX.Element {
         </div>
 
         <div className="header-actions">
-          <button className="header-icon" title="Novo projeto" aria-label="Novo projeto" onClick={newProject}><Plus size={19} /></button>
-          <button className="header-icon" title="Meus projetos" aria-label="Meus projetos" onClick={() => void showLibrary("browse")}><FolderOpen size={19} /></button>
+          <button className="header-icon" title="Novo projeto" aria-label="Novo projeto" disabled={libraryBusy} onClick={newProject}><Plus size={19} /></button>
+          <button className="header-icon" title="Meus projetos" aria-label="Meus projetos" disabled={libraryBusy} onClick={() => void showLibrary("browse")}><FolderOpen size={19} /></button>
           <button className="save-button" disabled={libraryBusy} onClick={() => void saveProject()}><Save size={17} /><span>Salvar</span></button>
         </div>
       </header>
