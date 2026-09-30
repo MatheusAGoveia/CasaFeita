@@ -32,4 +32,6 @@ test("biblioteca informa índice corrompido ou versão desconhecida", async () =
   await expect(library.list()).rejects.toThrow("Biblioteca de projetos corrompida");
   await writeFile(file, JSON.stringify({ version: 9, projects: [] }));
   await expect(library.list()).rejects.toThrow("Biblioteca de projetos corrompida");
+  await writeFile(file, JSON.stringify({ version: 1, projects: [{ id: "12345678-1234-1234-1234-123456789abc", name: "Sala", updatedAt: "ontem" }] }));
+  await expect(library.list()).rejects.toThrow("Biblioteca de projetos corrompida");
 });

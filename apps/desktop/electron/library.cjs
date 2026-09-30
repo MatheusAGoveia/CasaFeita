@@ -23,7 +23,8 @@ function createLibrary(directory) {
     catch { throw new Error("Biblioteca de projetos corrompida"); }
     if (!manifest || manifest.version !== 1 || !Array.isArray(manifest.projects) || manifest.projects.length > MAX_PROJECTS ||
         !manifest.projects.every((project) => project && typeof project.id === "string" && ID_PATTERN.test(project.id) &&
-          typeof project.name === "string" && typeof project.updatedAt === "string") ||
+          typeof project.name === "string" && project.name.trim().length > 0 && project.name.length <= 80 &&
+          typeof project.updatedAt === "string" && Number.isFinite(Date.parse(project.updatedAt))) ||
         new Set(manifest.projects.map((project) => project.id)).size !== manifest.projects.length) {
       throw new Error("Biblioteca de projetos corrompida");
     }
