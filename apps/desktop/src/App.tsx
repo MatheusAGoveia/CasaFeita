@@ -353,6 +353,7 @@ export function App(): React.JSX.Element {
     if (dimension === "width") piece.setWidth(centimeters);
     if (dimension === "depth") piece.setDepth(centimeters);
     if (dimension === "height") piece.setHeight(centimeters);
+    session.home.setModified(true);
     setFurnitureRevision((revision) => revision + 1);
   };
 

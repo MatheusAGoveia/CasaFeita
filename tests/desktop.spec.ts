@@ -14,8 +14,9 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
   try {
     const page = await app.firstWindow();
     const errors: string[] = [];
+    const confirmations: string[] = [];
     page.on("pageerror", (error) => errors.push(error.stack ?? error.message));
-    page.on("dialog", (dialog) => void dialog.accept());
+    page.on("dialog", (dialog) => { confirmations.push(dialog.message()); void dialog.accept(); });
     await expect(page.getByText("CasaFeita", { exact: true })).toBeVisible();
     await expect(page.getByTestId("plan-surface").locator("canvas")).toBeVisible();
     await expect(page.getByText("6 paredes")).toBeVisible();
@@ -74,7 +75,9 @@ test("abre o editor instalado e conserva uma planta ao salvar e reabrir", async 
     expect(savedHome.home.getFurniture()[0]?.getX()).not.toBe(savedHome.home.getFurniture()[1]?.getX());
     await page.getByRole("button", { name: "Fechar" }).click();
 
+    await page.getByRole("spinbutton", { name: "Largura" }).fill("230");
     await page.getByRole("button", { name: "Novo projeto" }).click();
+    expect(confirmations).toContain("Criar outro projeto? Salve as alterações antes de continuar.");
     await expect(page.getByText("0 paredes")).toBeVisible();
     await page.getByRole("button", { name: "Paredes", exact: true }).click();
     const plan = page.getByTestId("plan-surface").locator("canvas");
