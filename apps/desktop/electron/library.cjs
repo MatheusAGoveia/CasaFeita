@@ -5,7 +5,7 @@ const { randomUUID } = require("node:crypto");
 
 const MAX_PROJECTS = 3;
 const MAX_BYTES = 200 * 1024 * 1024;
-const ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 function createLibrary(directory, io = fs) {
   const manifestPath = path.join(directory, "projects.json");
