@@ -6,6 +6,7 @@ const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { createLibrary } = require("./library.cjs");
 const { atomicWriteFile, prepareExport } = require("./file-exports.cjs");
+const { readProjectFile } = require("./file-imports.cjs");
 
 if (!app.isPackaged && process.env.CASAFEITA_TEST_USER_DATA) {
   const testProfile = path.resolve(process.env.CASAFEITA_TEST_USER_DATA);
@@ -81,10 +82,7 @@ app.whenReady().then(() => {
     });
     if (chosen.canceled || chosen.filePaths.length === 0) return null;
     const filePath = chosen.filePaths[0];
-    const stat = await fs.stat(filePath);
-    if (stat.size > 200 * 1024 * 1024) throw new Error("Arquivo maior que 200 MB");
-    const bytes = await fs.readFile(filePath);
-    return { name: path.basename(filePath), bytes: new Uint8Array(bytes) };
+    return { name: path.basename(filePath), bytes: await readProjectFile(filePath) };
   });
 
   ipcMain.handle("project:save", async (event, suggestedName, data) => {
