@@ -57,6 +57,8 @@ export function isWalkable(home: Home, point: PlanPoint, radius = WALKER_RADIUS)
   }
   for (const piece of home.getFurniture()) {
     if (!piece.isVisible() || piece.isDoorOrWindow()) continue;
+    if (![piece.getX(), piece.getY(), piece.getWidth(), piece.getDepth(), piece.getAngle()].every(Number.isFinite) ||
+        piece.getWidth() <= 0 || piece.getDepth() <= 0) return false;
     const dx = point.x - piece.getX();
     const dy = point.y - piece.getY();
     const cos = Math.cos(piece.getAngle());

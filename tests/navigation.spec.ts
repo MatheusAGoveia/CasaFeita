@@ -57,6 +57,14 @@ test("espessura inválida de parede não abre passagem", () => {
   expect(isWalkable(home, { x: 180, y: 100 })).toBe(false);
 });
 
+test("móvel com geometria inválida não libera a área", () => {
+  const home = homeWithDoorway();
+  const piece = makeFurniture(furnitureCatalog[0]!);
+  piece.setX(180); piece.setY(280); piece.setWidth(NaN);
+  home.addPieceOfFurniture(piece);
+  expect(isWalkable(home, { x: 180, y: 280 })).toBe(false);
+});
+
 test("limites de planta suportam muitos vértices e rejeitam geometria inválida", () => {
   const home = new Home();
   home.addRoom(new Room(Array.from({ length: 70000 }, (_, index) => [index, index % 2])));
