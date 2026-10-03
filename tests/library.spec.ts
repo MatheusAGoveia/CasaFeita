@@ -2,7 +2,7 @@
 import { expect, test } from "@playwright/test";
 import path from "node:path";
 import * as fileSystem from "node:fs/promises";
-import { mkdir, readdir, rename, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, rename, rm, writeFile } from "node:fs/promises";
 import libraryModule from "../apps/desktop/electron/library.cjs";
 
 test("biblioteca local mantém três projetos e permite substituir ou excluir", async () => {
@@ -172,6 +172,21 @@ test("falha na recuperação preserva a cópia e permite tentar novamente", asyn
   expect(await fileSystem.readFile(backup)).toEqual(Buffer.from([1]));
   expect(await fileSystem.readFile(target)).toEqual(Buffer.from([9]));
   expect((await libraryModule.createLibrary(directory).open(project.id)).bytes).toEqual(Uint8Array.from([1]));
+});
+
+test("cópias de recuperação ambíguas não são sobrescritas", async () => {
+  const directory = path.resolve("test-results", "library-ambiguous-backups");
+  const project = await libraryModule.createLibrary(directory).save(null, "Casa", [1]);
+  const target = path.join(directory, `${project.id}.sh3d`);
+  const prefix = `${project.id}.${Date.parse(project.updatedAt)}`;
+  const first = path.join(directory, `${prefix}.11111111-1111-1111-1111-111111111111.bak`);
+  const second = path.join(directory, `${prefix}.22222222-2222-2222-2222-222222222222.bak`);
+  await rename(target, first);
+  await copyFile(first, second);
+  await writeFile(target, Uint8Array.from([9]));
+  await expect(libraryModule.createLibrary(directory).list()).rejects.toThrow("Múltiplas cópias de recuperação");
+  expect(await fileSystem.readFile(first)).toEqual(Buffer.from([1]));
+  expect(await fileSystem.readFile(second)).toEqual(Buffer.from([1]));
 });
 
 test("reinício descarta cópia antiga após índice atualizado", async () => {

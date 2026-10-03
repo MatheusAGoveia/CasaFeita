@@ -26,6 +26,8 @@ function createLibrary(directory, io = fs) {
   const backupPath = (entry) => path.join(directory, `${entry.id}.${Date.parse(entry.updatedAt)}.${randomUUID()}.bak`);
 
   const recoverBackups = async (entries) => {
+    const backups = [];
+    const restoreIds = new Set();
     for (const name of await io.readdir(directory)) {
       const match = name.match(/^([0-9a-f-]{36})\.([0-9]+)\.[0-9a-f-]{36}\.bak$/i);
       if (!match || !ID_PATTERN.test(match[1])) continue;
@@ -36,7 +38,13 @@ function createLibrary(directory, io = fs) {
         if (error.code === "ENOENT") return false;
         throw error;
       });
-      if (entry && (Date.parse(entry.updatedAt) === Number(match[2]) || !targetExists)) {
+      const restore = Boolean(entry && (Date.parse(entry.updatedAt) === Number(match[2]) || !targetExists));
+      if (restore && restoreIds.has(match[1])) throw new Error("Múltiplas cópias de recuperação do projeto");
+      if (restore) restoreIds.add(match[1]);
+      backups.push({ backup, target, restore });
+    }
+    for (const { backup, target, restore } of backups) {
+      if (restore) {
         await io.rename(backup, target);
       } else {
         await io.rm(backup, { force: true });
