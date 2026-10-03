@@ -51,6 +51,12 @@ test("coordenadas inválidas nunca são caminháveis", () => {
   expect(findWalkPath(home, { x: 100, y: 100 }, { x: NaN, y: 100 })).toBeNull();
 });
 
+test("espessura inválida de parede não abre passagem", () => {
+  const home = homeWithDoorway();
+  home.getWalls()[0]!.setThickness(NaN);
+  expect(isWalkable(home, { x: 180, y: 100 })).toBe(false);
+});
+
 test("limites de planta suportam muitos vértices e rejeitam geometria inválida", () => {
   const home = new Home();
   home.addRoom(new Room(Array.from({ length: 70000 }, (_, index) => [index, index % 2])));

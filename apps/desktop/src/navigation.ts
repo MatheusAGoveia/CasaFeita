@@ -49,6 +49,7 @@ export function isWalkable(home: Home, point: PlanPoint, radius = WALKER_RADIUS)
   const bounds = planBounds(home);
   if (!bounds || point.x < bounds.minX || point.x > bounds.maxX || point.y < bounds.minY || point.y > bounds.maxY) return false;
   for (const wall of home.getWalls()) {
+    if (!Number.isFinite(wall.getThickness()) || wall.getThickness() <= 0) return false;
     const distance = distanceToSegment(point,
       { x: wall.getXStart(), y: wall.getYStart() },
       { x: wall.getXEnd(), y: wall.getYEnd() });
