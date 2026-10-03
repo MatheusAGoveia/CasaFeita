@@ -1,12 +1,12 @@
 // Copyright (c) 2026 CasaFeita contributors. GPL-2.0-or-later.
 const { app, BrowserWindow, dialog, ipcMain, net, protocol } = require("electron");
-const fs = require("node:fs/promises");
 const fsSync = require("node:fs");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { createLibrary } = require("./library.cjs");
 const { atomicWriteFile, prepareExport } = require("./file-exports.cjs");
 const { readProjectFile } = require("./file-imports.cjs");
+const { resolveAssetPath } = require("./asset-path.cjs");
 
 if (!app.isPackaged && process.env.CASAFEITA_TEST_USER_DATA) {
   const testProfile = path.resolve(process.env.CASAFEITA_TEST_USER_DATA);
@@ -29,11 +29,8 @@ function assertMainWindow(event) {
 function registerLocalProtocol() {
   const distRoot = path.resolve(__dirname, "../dist");
   protocol.handle("casafeita", (request) => {
-    const url = new URL(request.url);
-    const requested = decodeURIComponent(url.pathname).replace(/^\/+/, "") || "index.html";
-    const filePath = path.resolve(distRoot, requested);
-    const relative = path.relative(distRoot, filePath);
-    if (url.host !== "app" || relative.startsWith("..") || path.isAbsolute(relative)) {
+    const filePath = resolveAssetPath(distRoot, request.url);
+    if (!filePath) {
       return new Response("Arquivo não encontrado", { status: 404 });
     }
     return net.fetch(pathToFileURL(filePath).toString());
