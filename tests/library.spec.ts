@@ -60,6 +60,13 @@ test("nomes com caracteres de controle são recusados", async () => {
   expect(await library.list()).toEqual([]);
 });
 
+test("bytes em lista são validados sem varrer novamente um Uint8Array", async () => {
+  const library = libraryModule.createLibrary(path.resolve("test-results", "library-bytes"));
+  await expect(library.save(null, "Inválido", [1, 256])).rejects.toThrow("Arquivo do projeto inválido");
+  const project = await library.save(null, "Válido", Uint8Array.from([0, 255]));
+  expect((await library.open(project.id)).bytes).toEqual(Uint8Array.from([0, 255]));
+});
+
 test("índice excessivo é rejeitado antes de carregar projetos", async () => {
   const directory = path.resolve("test-results", "library-huge-index");
   await mkdir(directory, { recursive: true });

@@ -122,7 +122,9 @@ function createLibrary(directory, io = fs) {
         if (id !== null && (typeof id !== "string" || !ID_PATTERN.test(id))) throw new Error("Projeto inválido");
         if (!validName(name)) throw new Error("Nome do projeto inválido");
         if (!(data instanceof Uint8Array || Array.isArray(data)) || data.length === 0 || data.length > MAX_BYTES ||
-            !data.every((byte) => Number.isInteger(byte) && byte >= 0 && byte <= 255)) throw new Error("Arquivo do projeto inválido");
+            (Array.isArray(data) && !data.every((byte) => Number.isInteger(byte) && byte >= 0 && byte <= 255))) {
+          throw new Error("Arquivo do projeto inválido");
+        }
         const entries = await readEntries();
         const existing = id === null ? undefined : entries.find((project) => project.id === id);
         if (id !== null && !existing) throw new Error("Projeto não encontrado");
