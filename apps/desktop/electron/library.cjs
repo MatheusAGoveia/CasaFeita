@@ -7,6 +7,12 @@ const MAX_PROJECTS = 3;
 const MAX_BYTES = 200 * 1024 * 1024;
 const ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
+function validTimestamp(value) {
+  if (typeof value !== "string") return false;
+  const time = Date.parse(value);
+  return Number.isFinite(time) && new Date(time).toISOString() === value;
+}
+
 function createLibrary(directory, io = fs) {
   const manifestPath = path.join(directory, "projects.json");
   let queue = Promise.resolve();
@@ -46,7 +52,7 @@ function createLibrary(directory, io = fs) {
     if (!manifest || manifest.version !== 1 || !Array.isArray(manifest.projects) || manifest.projects.length > MAX_PROJECTS ||
         !manifest.projects.every((project) => project && typeof project.id === "string" && ID_PATTERN.test(project.id) &&
           typeof project.name === "string" && project.name.trim().length > 0 && project.name.length <= 80 &&
-          typeof project.updatedAt === "string" && Number.isFinite(Date.parse(project.updatedAt))) ||
+          validTimestamp(project.updatedAt)) ||
         new Set(manifest.projects.map((project) => project.id)).size !== manifest.projects.length) {
       throw new Error("Biblioteca de projetos corrompida");
     }
