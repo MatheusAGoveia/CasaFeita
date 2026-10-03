@@ -6,6 +6,7 @@ test("cancelar seletor de importação não pede descarte das alterações", asy
   const app = await electron.launch({
     executablePath: path.resolve("node_modules/electron/dist/electron.exe"),
     args: [path.resolve("apps/desktop")],
+    env: { ...process.env, CASAFEITA_TEST_USER_DATA: path.resolve("test-results", "import-profile") },
   });
   try {
     const page = await app.firstWindow();

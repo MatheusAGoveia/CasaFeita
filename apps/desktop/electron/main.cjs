@@ -61,6 +61,15 @@ function createWindow() {
   void mainWindow.loadURL("casafeita://app/index.html");
 }
 
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+app.on("second-instance", () => {
+  if (!mainWindow) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.focus();
+});
+
 app.whenReady().then(() => {
   registerLocalProtocol();
   const library = createLibrary(path.join(app.getPath("userData"), "projects"));
@@ -102,3 +111,4 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => app.quit());
+}
