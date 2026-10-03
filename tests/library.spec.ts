@@ -53,6 +53,13 @@ test("biblioteca informa índice corrompido ou versão desconhecida", async () =
   await expect(library.list()).rejects.toThrow("Biblioteca de projetos corrompida");
 });
 
+test("nomes com caracteres de controle são recusados", async () => {
+  const directory = path.resolve("test-results", "library-invalid-name");
+  const library = libraryModule.createLibrary(directory);
+  await expect(library.save(null, "Casa\nFalsa", [1])).rejects.toThrow("Nome do projeto inválido");
+  expect(await library.list()).toEqual([]);
+});
+
 test("falha ao atualizar índice remove arquivo temporário", async () => {
   const directory = path.resolve("test-results", "library-index-failure");
   const index = path.join(directory, "projects.json");

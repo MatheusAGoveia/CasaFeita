@@ -13,6 +13,11 @@ function validTimestamp(value) {
   return Number.isFinite(time) && new Date(time).toISOString() === value;
 }
 
+function validName(value) {
+  return typeof value === "string" && value.trim().length > 0 && value.length <= 80 &&
+    !/[\u0000-\u001f\u007f-\u009f]/u.test(value);
+}
+
 function createLibrary(directory, io = fs) {
   const manifestPath = path.join(directory, "projects.json");
   let queue = Promise.resolve();
@@ -51,7 +56,7 @@ function createLibrary(directory, io = fs) {
     catch { throw new Error("Biblioteca de projetos corrompida"); }
     if (!manifest || manifest.version !== 1 || !Array.isArray(manifest.projects) || manifest.projects.length > MAX_PROJECTS ||
         !manifest.projects.every((project) => project && typeof project.id === "string" && ID_PATTERN.test(project.id) &&
-          typeof project.name === "string" && project.name.trim().length > 0 && project.name.length <= 80 &&
+          validName(project.name) &&
           validTimestamp(project.updatedAt)) ||
         new Set(manifest.projects.map((project) => project.id)).size !== manifest.projects.length) {
       throw new Error("Biblioteca de projetos corrompida");
@@ -106,7 +111,7 @@ function createLibrary(directory, io = fs) {
     save(id, name, data) {
       return runExclusive(async () => {
         if (id !== null && (typeof id !== "string" || !ID_PATTERN.test(id))) throw new Error("Projeto inválido");
-        if (typeof name !== "string" || !name.trim() || name.length > 80) throw new Error("Nome do projeto inválido");
+        if (!validName(name)) throw new Error("Nome do projeto inválido");
         if (!(data instanceof Uint8Array || Array.isArray(data)) || data.length === 0 || data.length > MAX_BYTES ||
             !data.every((byte) => Number.isInteger(byte) && byte >= 0 && byte <= 255)) throw new Error("Arquivo do projeto inválido");
         const entries = await readEntries();
