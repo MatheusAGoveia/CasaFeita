@@ -33,7 +33,7 @@ import { PlanCanvas, RoomDialog, View3DCanvas, WallDialog } from "@sweethomejs/u
 import "@sweethomejs/ui/theme.css";
 import { createSession, createStarterHome, type Session } from "./session";
 import { canChangeFurnitureFinish, furnitureCatalog, furnitureCategories, furnitureFinishes, furnitureThumbnail, getFurnitureFinish, makeFurniture, setFurnitureFinish, type FurnitureCategory, type FurnitureDefinition } from "./furniture";
-import { nearestWalkable, planBounds } from "./navigation";
+import { nearestWalkable, planBounds, roomCenter } from "./navigation";
 import { Walkthrough } from "./Walkthrough";
 import { ProjectLibrary } from "./ProjectLibrary";
 
@@ -313,10 +313,8 @@ export function App(): React.JSX.Element {
       return;
     }
     const firstRoom = home.getRooms()[0];
-    const center = firstRoom ? {
-      x: (Math.min(...firstRoom.getPoints().map((point) => point[0]!)) + Math.max(...firstRoom.getPoints().map((point) => point[0]!))) / 2,
-      y: (Math.min(...firstRoom.getPoints().map((point) => point[1]!)) + Math.max(...firstRoom.getPoints().map((point) => point[1]!))) / 2,
-    } : { x: (bounds.minX + bounds.maxX) / 2, y: (bounds.minY + bounds.maxY) / 2 };
+    const center = (firstRoom && roomCenter(firstRoom)) ??
+      { x: bounds.minX + (bounds.maxX - bounds.minX) / 2, y: bounds.minY + (bounds.maxY - bounds.minY) / 2 };
     const start = nearestWalkable(home, center);
     if (!start) {
       setNotice("Não há espaço livre para começar o passeio.");
@@ -346,13 +344,11 @@ export function App(): React.JSX.Element {
   const addFurniture = (item: FurnitureDefinition): void => {
     const piece = makeFurniture(item);
     const target = selectedItem instanceof Room ? selectedItem : session.home.getRooms()[0];
-    if (target) {
-      const points = target.getPoints();
-      const centerX = (Math.min(...points.map((p) => p[0]!)) + Math.max(...points.map((p) => p[0]!))) / 2;
-      const centerY = (Math.min(...points.map((p) => p[1]!)) + Math.max(...points.map((p) => p[1]!))) / 2;
+    const center = target ? roomCenter(target) : null;
+    if (center) {
       const offset = (session.home.getFurniture().length % 3 - 1) * 45;
-      piece.setX(centerX + offset);
-      piece.setY(centerY + offset);
+      piece.setX(center.x + offset);
+      piece.setY(center.y + offset);
     } else {
       piece.setX(200);
       piece.setY(200);

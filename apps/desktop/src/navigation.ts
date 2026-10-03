@@ -1,10 +1,20 @@
 // Copyright (c) 2026 CasaFeita contributors. GPL-2.0-or-later.
-import type { Home } from "@sweethomejs/core";
+import type { Home, Room } from "@sweethomejs/core";
 
 export interface PlanPoint { x: number; y: number }
 export interface PlanBounds { minX: number; minY: number; maxX: number; maxY: number }
 
 export const WALKER_RADIUS = 18; // cm, clearance from walls and furniture
+
+export function roomCenter(room: Room): PlanPoint | null {
+  let minX = Infinity; let minY = Infinity; let maxX = -Infinity; let maxY = -Infinity;
+  for (const [x, y] of room.getPoints()) {
+    if (typeof x !== "number" || typeof y !== "number" || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+    minX = Math.min(minX, x); minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+  }
+  return minX === Infinity ? null : { x: minX + (maxX - minX) / 2, y: minY + (maxY - minY) / 2 };
+}
 
 export function planBounds(home: Home): PlanBounds | null {
   const bounds: PlanBounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };

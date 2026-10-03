@@ -2,7 +2,7 @@
 import { expect, test } from "@playwright/test";
 import { Home, Room, Wall } from "@sweethomejs/core";
 import { furnitureCatalog, makeFurniture } from "../apps/desktop/src/furniture";
-import { findWalkPath, isWalkable, moveWithSlide, nearestWalkable, planBounds, segmentIsWalkable } from "../apps/desktop/src/navigation";
+import { findWalkPath, isWalkable, moveWithSlide, nearestWalkable, planBounds, roomCenter, segmentIsWalkable } from "../apps/desktop/src/navigation";
 
 function homeWithDoorway(): Home {
   const home = new Home();
@@ -55,6 +55,7 @@ test("limites de planta suportam muitos vértices e rejeitam geometria inválida
   const home = new Home();
   home.addRoom(new Room(Array.from({ length: 70000 }, (_, index) => [index, index % 2])));
   expect(planBounds(home)).toEqual({ minX: 0, minY: 0, maxX: 69999, maxY: 1 });
+  expect(roomCenter(home.getRooms()[0]!)).toEqual({ x: 34999.5, y: 0.5 });
   const invalid = new Home();
   invalid.addRoom(new Room([[0, 0], [NaN, 10], [10, 10]]));
   expect(planBounds(invalid)).toBeNull();

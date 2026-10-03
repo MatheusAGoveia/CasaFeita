@@ -2,9 +2,8 @@
 import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { ArrowLeft, ChevronDown, Footprints, House, MapPin, MousePointer2 } from "lucide-react";
 import { View3DCanvas } from "@sweethomejs/ui";
-import type { Room } from "@sweethomejs/core";
 import type { Session } from "./session";
-import { findWalkPath, isWalkable, moveWithSlide, nearestWalkable, planBounds, segmentIsWalkable, type PlanPoint } from "./navigation";
+import { findWalkPath, isWalkable, moveWithSlide, nearestWalkable, planBounds, roomCenter, segmentIsWalkable, type PlanPoint } from "./navigation";
 
 interface WalkthroughProps {
   session: Session;
@@ -20,14 +19,6 @@ function savedWalkSpeed(): number {
   } catch {
     return 1.2;
   }
-}
-
-function roomCenter(room: Room): PlanPoint {
-  const points = room.getPoints();
-  return {
-    x: (Math.min(...points.map((point) => point[0]!)) + Math.max(...points.map((point) => point[0]!))) / 2,
-    y: (Math.min(...points.map((point) => point[1]!)) + Math.max(...points.map((point) => point[1]!))) / 2,
-  };
 }
 
 export function Walkthrough({ session, onExit }: WalkthroughProps): React.JSX.Element {
@@ -201,7 +192,7 @@ export function Walkthrough({ session, onExit }: WalkthroughProps): React.JSX.El
     <div className="walk-mode-wrap"><div className={`mode-pill ${menuOpen ? "open" : ""}`}><button className="mode-current" aria-label="Modo passeio" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><Footprints size={17} /><span>Passear</span><ChevronDown size={15} /></button>{menuOpen && <div className="mode-extra"><span className="mode-line" /><button onClick={() => onExit("Planta")}>Planta</button><button onClick={() => onExit("Mobiliar")}>Mobiliar</button></div>}</div></div>
     <button className="walk-back" onClick={() => onExit("Planta")}><ArrowLeft size={17} /> Voltar ao editor</button>
     <div className="walk-crosshair" aria-hidden="true">+</div>
-    {home.getRooms().length > 0 && <nav className="walk-room-rail" aria-label="Ir para cômodo"><span>CÔMODOS</span>{home.getRooms().map((room, index) => <button key={room.getId() ?? index} title={room.getName() ?? `Cômodo ${index + 1}`} onClick={() => { const point = nearestWalkable(home, roomCenter(room)); if (point) navigate(point, false); }} onDoubleClick={() => { const point = nearestWalkable(home, roomCenter(room)); if (point) navigate(point, true); }}><MapPin size={16} /><small>{room.getName() ?? `Cômodo ${index + 1}`}</small></button>)}</nav>}
+    {home.getRooms().length > 0 && <nav className="walk-room-rail" aria-label="Ir para cômodo"><span>CÔMODOS</span>{home.getRooms().map((room, index) => <button key={room.getId() ?? index} title={room.getName() ?? `Cômodo ${index + 1}`} onClick={() => { const center = roomCenter(room); const point = center && nearestWalkable(home, center); if (point) navigate(point, false); }} onDoubleClick={() => { const center = roomCenter(room); const point = center && nearestWalkable(home, center); if (point) navigate(point, true); }}><MapPin size={16} /><small>{room.getName() ?? `Cômodo ${index + 1}`}</small></button>)}</nav>}
     <div className="walk-minimap"><div className="walk-map-title"><strong>Mapa da planta</strong><span>1 clique: caminhar · 2 cliques: ir agora</span></div>{bounds ? <svg ref={mapRef} data-testid="minimap" role="img" aria-label="Minimapa da planta" viewBox={`${bounds.minX - 45} ${bounds.minY - 45} ${bounds.maxX - bounds.minX + 90} ${bounds.maxY - bounds.minY + 90}`} preserveAspectRatio="xMidYMid meet" onClick={onMapClick} onDoubleClick={onMapDoubleClick}>
       <rect x={bounds.minX - 45} y={bounds.minY - 45} width={bounds.maxX - bounds.minX + 90} height={bounds.maxY - bounds.minY + 90} fill="#f7f7f0" />
       {home.getRooms().map((room, index) => <polygon key={room.getId() ?? index} points={room.getPoints().map((point) => `${point[0]},${point[1]}`).join(" ")} fill={index % 2 === 0 ? "#e2cfb9" : "#eadbc9"} />)}
