@@ -37,7 +37,6 @@ function createLibrary(directory, io = fs) {
         throw error;
       });
       if (entry && (Date.parse(entry.updatedAt) === Number(match[2]) || !targetExists)) {
-        if (targetExists) await io.rm(target);
         await io.rename(backup, target);
       } else {
         await io.rm(backup, { force: true });
