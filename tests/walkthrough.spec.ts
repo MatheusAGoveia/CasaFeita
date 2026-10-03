@@ -6,6 +6,7 @@ test("minimapa caminha, duplo clique teleporta e controle ajusta velocidade", as
   const app = await electron.launch({
     executablePath: path.resolve("node_modules/electron/dist/electron.exe"),
     args: [path.resolve("apps/desktop")],
+    env: { ...process.env, CASAFEITA_TEST_USER_DATA: path.resolve("test-results", "walkthrough-profile") },
     timeout: 60000,
   });
   try {

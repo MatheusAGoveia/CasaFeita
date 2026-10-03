@@ -1,10 +1,20 @@
 // Copyright (c) 2026 CasaFeita contributors. GPL-2.0-or-later.
-import type { Home } from "@sweethomejs/core";
+import type { Home, Room } from "@sweethomejs/core";
 
 export interface PlanPoint { x: number; y: number }
 export interface PlanBounds { minX: number; minY: number; maxX: number; maxY: number }
 
 export const WALKER_RADIUS = 18; // cm, clearance from walls and furniture
+
+export function roomCenter(room: Room): PlanPoint | null {
+  let minX = Infinity; let minY = Infinity; let maxX = -Infinity; let maxY = -Infinity;
+  for (const [x, y] of room.getPoints()) {
+    if (typeof x !== "number" || typeof y !== "number" || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+    minX = Math.min(minX, x); minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+  }
+  return minX === Infinity ? null : { x: minX + (maxX - minX) / 2, y: minY + (maxY - minY) / 2 };
+}
 
 export function planBounds(home: Home): PlanBounds | null {
   const bounds: PlanBounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
@@ -39,6 +49,7 @@ export function isWalkable(home: Home, point: PlanPoint, radius = WALKER_RADIUS)
   const bounds = planBounds(home);
   if (!bounds || point.x < bounds.minX || point.x > bounds.maxX || point.y < bounds.minY || point.y > bounds.maxY) return false;
   for (const wall of home.getWalls()) {
+    if (!Number.isFinite(wall.getThickness()) || wall.getThickness() <= 0) return false;
     const distance = distanceToSegment(point,
       { x: wall.getXStart(), y: wall.getYStart() },
       { x: wall.getXEnd(), y: wall.getYEnd() });
@@ -46,6 +57,8 @@ export function isWalkable(home: Home, point: PlanPoint, radius = WALKER_RADIUS)
   }
   for (const piece of home.getFurniture()) {
     if (!piece.isVisible() || piece.isDoorOrWindow()) continue;
+    if (![piece.getX(), piece.getY(), piece.getWidth(), piece.getDepth(), piece.getAngle()].every(Number.isFinite) ||
+        piece.getWidth() <= 0 || piece.getDepth() <= 0) return false;
     const dx = point.x - piece.getX();
     const dy = point.y - piece.getY();
     const cos = Math.cos(piece.getAngle());
@@ -72,12 +85,16 @@ export function segmentIsWalkable(home: Home, from: PlanPoint, to: PlanPoint): b
 
 export function moveWithSlide(home: Home, from: PlanPoint, target: PlanPoint): PlanPoint {
   if (segmentIsWalkable(home, from, target)) return target;
-  let current = from;
-  const alongX = { x: target.x, y: from.y };
-  if (segmentIsWalkable(home, current, alongX)) current = alongX;
-  const alongY = { x: current.x, y: target.y };
-  if (segmentIsWalkable(home, current, alongY)) current = alongY;
-  return current;
+  const slide = (first: "x" | "y"): PlanPoint => {
+    const middle = first === "x" ? { x: target.x, y: from.y } : { x: from.x, y: target.y };
+    const reached = segmentIsWalkable(home, from, middle) ? middle : from;
+    const end = first === "x" ? { x: reached.x, y: target.y } : { x: target.x, y: reached.y };
+    return segmentIsWalkable(home, reached, end) ? end : reached;
+  };
+  const xFirst = slide("x");
+  const yFirst = slide("y");
+  return Math.hypot(target.x - xFirst.x, target.y - xFirst.y) <=
+    Math.hypot(target.x - yFirst.x, target.y - yFirst.y) ? xFirst : yFirst;
 }
 
 export function nearestWalkable(home: Home, target: PlanPoint): PlanPoint | null {

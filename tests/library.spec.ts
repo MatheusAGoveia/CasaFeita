@@ -2,7 +2,7 @@
 import { expect, test } from "@playwright/test";
 import path from "node:path";
 import * as fileSystem from "node:fs/promises";
-import { mkdir, readdir, rename, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, rename, rm, writeFile } from "node:fs/promises";
 import libraryModule from "../apps/desktop/electron/library.cjs";
 
 test("biblioteca local mantém três projetos e permite substituir ou excluir", async () => {
@@ -44,6 +44,34 @@ test("biblioteca informa índice corrompido ou versão desconhecida", async () =
   await expect(library.list()).rejects.toThrow("Biblioteca de projetos corrompida");
   await writeFile(file, JSON.stringify({ version: 1, projects: [{ id: "12345678-1234-1234-1234-123456789abc", name: "Sala", updatedAt: "ontem" }] }));
   await expect(library.list()).rejects.toThrow("Biblioteca de projetos corrompida");
+  await writeFile(file, JSON.stringify({ version: 1, projects: [{ id: "12345678-1234-1234-1234-123456789abc", name: "Sala", updatedAt: "09/29/2026" }] }));
+  await expect(library.list()).rejects.toThrow("Biblioteca de projetos corrompida");
+  await writeFile(file, JSON.stringify({ version: 1, projects: [
+    { id: "12345678-1234-1234-1234-123456789abc", name: "Sala", updatedAt: "2026-09-29T12:00:00.000Z" },
+    { id: "12345678-1234-1234-1234-123456789ABC", name: "Cópia", updatedAt: "2026-09-29T12:00:00.000Z" },
+  ] }));
+  await expect(library.list()).rejects.toThrow("Biblioteca de projetos corrompida");
+});
+
+test("nomes com caracteres de controle são recusados", async () => {
+  const directory = path.resolve("test-results", "library-invalid-name");
+  const library = libraryModule.createLibrary(directory);
+  await expect(library.save(null, "Casa\nFalsa", [1])).rejects.toThrow("Nome do projeto inválido");
+  expect(await library.list()).toEqual([]);
+});
+
+test("bytes em lista são validados sem varrer novamente um Uint8Array", async () => {
+  const library = libraryModule.createLibrary(path.resolve("test-results", "library-bytes"));
+  await expect(library.save(null, "Inválido", [1, 256])).rejects.toThrow("Arquivo do projeto inválido");
+  const project = await library.save(null, "Válido", Uint8Array.from([0, 255]));
+  expect((await library.open(project.id)).bytes).toEqual(Uint8Array.from([0, 255]));
+});
+
+test("índice excessivo é rejeitado antes de carregar projetos", async () => {
+  const directory = path.resolve("test-results", "library-huge-index");
+  await mkdir(directory, { recursive: true });
+  await writeFile(path.join(directory, "projects.json"), " ".repeat(70_000));
+  await expect(libraryModule.createLibrary(directory).list()).rejects.toThrow("Biblioteca de projetos corrompida");
 });
 
 test("falha ao atualizar índice remove arquivo temporário", async () => {
@@ -130,6 +158,35 @@ test("reinício recupera cópia anterior após interrupção de substituição",
   await writeFile(target, Uint8Array.from([9, 9]));
   expect((await libraryModule.createLibrary(directory).open(project.id)).bytes).toEqual(Uint8Array.from([1, 2]));
   expect((await readdir(directory)).some((name) => name.endsWith(".bak"))).toBe(false);
+});
+
+test("falha na recuperação preserva a cópia e permite tentar novamente", async () => {
+  const directory = path.resolve("test-results", "library-recovery-retry");
+  const project = await libraryModule.createLibrary(directory).save(null, "Casa", [1]);
+  const target = path.join(directory, `${project.id}.sh3d`);
+  const backup = path.join(directory, `${project.id}.${Date.parse(project.updatedAt)}.11111111-1111-1111-1111-111111111111.bak`);
+  await rename(target, backup);
+  await writeFile(target, Uint8Array.from([9]));
+  const io = { ...fileSystem, rename: async () => { throw new Error("disco indisponível"); } };
+  await expect(libraryModule.createLibrary(directory, io).list()).rejects.toThrow("disco indisponível");
+  expect(await fileSystem.readFile(backup)).toEqual(Buffer.from([1]));
+  expect(await fileSystem.readFile(target)).toEqual(Buffer.from([9]));
+  expect((await libraryModule.createLibrary(directory).open(project.id)).bytes).toEqual(Uint8Array.from([1]));
+});
+
+test("cópias de recuperação ambíguas não são sobrescritas", async () => {
+  const directory = path.resolve("test-results", "library-ambiguous-backups");
+  const project = await libraryModule.createLibrary(directory).save(null, "Casa", [1]);
+  const target = path.join(directory, `${project.id}.sh3d`);
+  const prefix = `${project.id}.${Date.parse(project.updatedAt)}`;
+  const first = path.join(directory, `${prefix}.11111111-1111-1111-1111-111111111111.bak`);
+  const second = path.join(directory, `${prefix}.22222222-2222-2222-2222-222222222222.bak`);
+  await rename(target, first);
+  await copyFile(first, second);
+  await writeFile(target, Uint8Array.from([9]));
+  await expect(libraryModule.createLibrary(directory).list()).rejects.toThrow("Múltiplas cópias de recuperação");
+  expect(await fileSystem.readFile(first)).toEqual(Buffer.from([1]));
+  expect(await fileSystem.readFile(second)).toEqual(Buffer.from([1]));
 });
 
 test("reinício descarta cópia antiga após índice atualizado", async () => {
