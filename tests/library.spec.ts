@@ -60,6 +60,13 @@ test("nomes com caracteres de controle são recusados", async () => {
   expect(await library.list()).toEqual([]);
 });
 
+test("índice excessivo é rejeitado antes de carregar projetos", async () => {
+  const directory = path.resolve("test-results", "library-huge-index");
+  await mkdir(directory, { recursive: true });
+  await writeFile(path.join(directory, "projects.json"), " ".repeat(70_000));
+  await expect(libraryModule.createLibrary(directory).list()).rejects.toThrow("Biblioteca de projetos corrompida");
+});
+
 test("falha ao atualizar índice remove arquivo temporário", async () => {
   const directory = path.resolve("test-results", "library-index-failure");
   const index = path.join(directory, "projects.json");

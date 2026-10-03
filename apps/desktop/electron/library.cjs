@@ -5,6 +5,7 @@ const { randomUUID } = require("node:crypto");
 
 const MAX_PROJECTS = 3;
 const MAX_BYTES = 200 * 1024 * 1024;
+const MAX_MANIFEST_BYTES = 64 * 1024;
 const ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 function validTimestamp(value) {
@@ -45,12 +46,20 @@ function createLibrary(directory, io = fs) {
   };
 
   const readEntries = async () => {
+    try {
+      const stat = await io.stat(manifestPath);
+      if (!stat.isFile() || stat.size > MAX_MANIFEST_BYTES) throw new Error("Biblioteca de projetos corrompida");
+    } catch (error) {
+      if (error.code === "ENOENT") return [];
+      throw error;
+    }
     let raw;
     try { raw = await io.readFile(manifestPath, "utf8"); }
     catch (error) {
       if (error.code === "ENOENT") return [];
       throw error;
     }
+    if (Buffer.byteLength(raw, "utf8") > MAX_MANIFEST_BYTES) throw new Error("Biblioteca de projetos corrompida");
     let manifest;
     try { manifest = JSON.parse(raw); }
     catch { throw new Error("Biblioteca de projetos corrompida"); }
