@@ -85,12 +85,16 @@ export function segmentIsWalkable(home: Home, from: PlanPoint, to: PlanPoint): b
 
 export function moveWithSlide(home: Home, from: PlanPoint, target: PlanPoint): PlanPoint {
   if (segmentIsWalkable(home, from, target)) return target;
-  let current = from;
-  const alongX = { x: target.x, y: from.y };
-  if (segmentIsWalkable(home, current, alongX)) current = alongX;
-  const alongY = { x: current.x, y: target.y };
-  if (segmentIsWalkable(home, current, alongY)) current = alongY;
-  return current;
+  const slide = (first: "x" | "y"): PlanPoint => {
+    const middle = first === "x" ? { x: target.x, y: from.y } : { x: from.x, y: target.y };
+    const reached = segmentIsWalkable(home, from, middle) ? middle : from;
+    const end = first === "x" ? { x: reached.x, y: target.y } : { x: target.x, y: reached.y };
+    return segmentIsWalkable(home, reached, end) ? end : reached;
+  };
+  const xFirst = slide("x");
+  const yFirst = slide("y");
+  return Math.hypot(target.x - xFirst.x, target.y - xFirst.y) <=
+    Math.hypot(target.x - yFirst.x, target.y - yFirst.y) ? xFirst : yFirst;
 }
 
 export function nearestWalkable(home: Home, target: PlanPoint): PlanPoint | null {

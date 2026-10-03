@@ -92,3 +92,12 @@ test("deslizamento diagonal nunca termina dentro de um móvel", () => {
   expect(moved).toEqual({ x: 30, y: 0 });
   expect(isWalkable(home, moved)).toBe(true);
 });
+
+test("deslizamento tenta também o eixo vertical primeiro", () => {
+  const home = new Home();
+  home.addRoom(new Room([[0, 0], [100, 0], [100, 100], [0, 100]]));
+  const piece = makeFurniture(furnitureCatalog[0]!);
+  piece.setX(30); piece.setY(0); piece.setWidth(20); piece.setDepth(20);
+  home.addPieceOfFurniture(piece);
+  expect(moveWithSlide(home, { x: 0, y: 0 }, { x: 60, y: 60 })).toEqual({ x: 60, y: 60 });
+});
